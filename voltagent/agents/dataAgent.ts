@@ -29,8 +29,7 @@ Always validate queries before execution and backup important data.`,
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: async () => {
     return mcpToolsService.getToolsForAgent('data');
-  },
-  hooks: createSubAgentHooks("DataManager", "database and data operations"),
+  },  hooks: createSubAgentHooks("DataManager", "database and data operations"),
   // Memory for tracking data operations and query history
   memory: memoryStorage,
   // Retriever for accessing data schemas and documentation
@@ -38,4 +37,8 @@ Always validate queries before execution and backup important data.`,
     toolName: "search_data_schemas",
     toolDescription: "Search through data schemas and documentation"
   }),
+  thinkingConfig: {
+    thinkingBudget: 0,
+    includeThoughts: false
+  }
 });

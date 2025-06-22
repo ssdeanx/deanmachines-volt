@@ -55,8 +55,7 @@ export const devAgent = new Agent({
       devReasoningTools, // Add reasoning tools for development analysis
       ...mcpToolsService.getToolsForAgent('dev')
     ];
-  },
-  hooks: createSubAgentHooks("Developer", "development and DevOps"),
+  },  hooks: createSubAgentHooks("Developer", "development and DevOps"),
   // Memory for tracking development context and project state
   memory: memoryStorage,
   // Retriever for accessing code documentation and project knowledge
@@ -64,4 +63,8 @@ export const devAgent = new Agent({
     toolName: "search_code_docs",
     toolDescription: "Search through code documentation and project files"
   }),
+  thinkingConfig: {
+    thinkingBudget: 0,
+    includeThoughts: false
+  }
 });

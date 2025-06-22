@@ -18,7 +18,7 @@ export const memoryStorage = new LibSQLStorage({
   // Prefix for all memory tables
   tablePrefix: "voltagent_memory",
   
-  // Keep last 100 messages per conversation
+  // Keep last 100 messages per conversation (official default)
   storageLimit: 100,
   
   // Enable debug logging in development
@@ -45,7 +45,6 @@ export class MemoryService {
       orderDirection: "DESC",
     });
   }
-
   /**
    * Get paginated conversations for a user
    */
@@ -54,10 +53,34 @@ export class MemoryService {
   }
 
   /**
-   * Get messages for a specific conversation
+   * Get messages for a specific conversation with pagination
    */
   async getConversationMessages(conversationId: string, options?: { limit?: number; offset?: number }) {
     return this.storage.getConversationMessages(conversationId, options);
+  }
+
+  /**
+   * Process messages in batches for large conversations
+   */
+  async getConversationMessagesBatched(
+    conversationId: string, 
+    batchSize = 100,
+    processor: (batch: any[]) => Promise<void>
+  ) {
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const batch = await this.storage.getConversationMessages(conversationId, {
+        limit: batchSize,
+        offset: offset,
+      });
+
+      await processor(batch);
+      
+      hasMore = batch.length === batchSize;
+      offset += batchSize;
+    }
   }
   /**
    * Create a new conversation
@@ -98,12 +121,39 @@ export class MemoryService {
   }) {
     return this.storage.updateConversation(conversationId, updates);
   }
-
   /**
    * Get specific conversation with user validation
    */
   async getUserConversation(conversationId: string, userId: string) {
     return this.storage.getUserConversation(conversationId, userId);
+  }
+
+  /**
+   * Delete a conversation and all its messages
+   */
+  async deleteConversation(conversationId: string) {
+    return this.storage.deleteConversation(conversationId);
+  }
+
+  /**
+   * Clear all messages for a conversation or user
+   */
+  async clearMessages(options: {
+    userId: string;
+    conversationId?: string | undefined;
+  }) {
+    return this.storage.clearMessages(options);  }
+
+  /**
+   * Get messages with filtering options
+   */
+  async getMessages(options: {
+    userId: string;
+    conversationId: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    return this.storage.getMessages(options);
   }
 }
 

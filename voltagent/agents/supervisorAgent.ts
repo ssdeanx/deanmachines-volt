@@ -63,8 +63,7 @@ export const supervisorAgent = new Agent({
     dataAgent,
     commsAgent,
     memoryAgent
-  ],
-  hooks: createSupervisorHooks("Boss"),
+  ],  hooks: createSupervisorHooks("Boss"),
   // Memory for maintaining conversation context and task coordination
   memory: memoryStorage,
   // Retriever for accessing knowledge across all domains
@@ -72,4 +71,8 @@ export const supervisorAgent = new Agent({
     toolName: "search_all_knowledge",
     toolDescription: "Search across all stored knowledge and documentation"
   }),
+  thinkingConfig: {
+    thinkingBudget: 0,
+    includeThoughts: false
+  }
 });

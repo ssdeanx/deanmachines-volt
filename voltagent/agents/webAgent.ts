@@ -55,8 +55,7 @@ export const webAgent = new Agent({
       researchReasoningTools, // Add reasoning tools for research analysis
       ...mcpToolsService.getToolsForAgent('research')
     ];
-  },
-  hooks: createSubAgentHooks("WebResearcher", "web research and browsing"),
+  },  hooks: createSubAgentHooks("WebResearcher", "web research and browsing"),
   // Memory for maintaining research context and findings
   memory: memoryStorage,
   // Retriever for accessing stored research documents and findings
@@ -64,4 +63,8 @@ export const webAgent = new Agent({
     toolName: "search_research_docs",
     toolDescription: "Search previously stored research documents and findings"
   }),
+  thinkingConfig: {
+    thinkingBudget: 0,
+    includeThoughts: false
+  }
 });

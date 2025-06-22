@@ -16,16 +16,17 @@ export const createAgentHooks = (agentName: string) => {
     onStart: async (args: OnStartHookArgs) => {
       const { agent, context } = args;
       
+      // Use the agentName parameter
+      const effectiveName = agentName || agent.name;
+      
       // Initialize tracking data in userContext
       context.userContext.set("operationId", `op-${Date.now()}`);
       context.userContext.set("startTime", new Date().toISOString());
-      context.userContext.set("agentName", agent.name);
+      context.userContext.set("agentName", effectiveName);
       
-      console.log(`🚀 [${agent.name}] Starting operation at ${new Date().toISOString()}`);
+      console.log(`🚀 [${effectiveName}] Starting operation at ${new Date().toISOString()}`);
       console.log(`   Operation ID: ${context.userContext.get("operationId")}`);
-    },
-
-    /**
+    },    /**
      * Called after the agent finishes processing a request
      */
     onEnd: async (args: OnEndHookArgs) => {
@@ -35,29 +36,25 @@ export const createAgentHooks = (agentName: string) => {
       
       if (error) {
         console.error(`❌ [${agent.name}] Operation ${operationId} failed:`, error.message);
-        
-        // Store error information in userContext
         context.userContext.set("error", {
           message: error.message,
           type: error.constructor.name,
           timestamp: new Date().toISOString()
-        });
-      } else if (output) {
+        });      } else if (output) {
         console.log(`✅ [${agent.name}] Operation ${operationId} completed successfully`);
-        
-        // Store completion metrics
         const endTime = new Date().toISOString();
         context.userContext.set("endTime", endTime);
         context.userContext.set("success", true);
         
-        // Log usage if available
         if ("usage" in output && output.usage) {
           console.log(`   Token Usage: ${output.usage.totalTokens} tokens`);
           context.userContext.set("tokenUsage", output.usage.totalTokens);
         }
-          // Track conversation flow - using available context data
-        if (output && "usage" in output) {
-          console.log(`   Operation completed with token usage tracking`);
+        
+        if (startTime) {
+          const duration = Date.now() - new Date(startTime).getTime();
+          console.log(`   Duration: ${duration}ms`);
+          context.userContext.set("duration", duration);
         }
       }
     },
@@ -128,26 +125,23 @@ export const createAgentHooks = (agentName: string) => {
  * Specialized hooks for supervisor agents
  */
 export const createSupervisorHooks = (supervisorName: string) => {
-  return createHooks({
-    onStart: async ({ agent, context }: OnStartHookArgs) => {
+  return createHooks({    onStart: async ({ agent, context }: OnStartHookArgs) => {
+      // Use both supervisorName parameter and agent.name
+      console.log(`👑 [Supervisor:${supervisorName}/${agent.name}] Starting coordination operation`);
       context.userContext.set("supervisorOperationId", `sup-${Date.now()}`);
       context.userContext.set("delegationCount", 0);
-      
-      console.log(`👑 [Supervisor:${agent.name}] Starting coordination operation`);
     },
 
     onEnd: async ({ agent, output, error, context }: OnEndHookArgs) => {
       const delegationCount = context.userContext.get("delegationCount") || 0;
       
       if (error) {
-        console.error(`👑❌ [Supervisor:${agent.name}] Coordination failed after ${delegationCount} delegations`);
-      } else {
-        console.log(`👑✅ [Supervisor:${agent.name}] Coordination completed with ${delegationCount} delegations`);
+        console.error(`👑❌ [Supervisor:${supervisorName}/${agent.name}] Coordination failed after ${delegationCount} delegations:`, error.message);
+      } else if (output) {
+        console.log(`👑✅ [Supervisor:${supervisorName}/${agent.name}] Coordination completed with ${delegationCount} delegations`);
       }
-    },    onHandoff: async ({ agent }: OnHandoffHookArgs) => {
-      console.log(`👑🔄 [Supervisor] Delegating to ${agent.name}`);
-      
-      // Could increment delegation counter here if needed
+    },onHandoff: async ({ agent }: OnHandoffHookArgs) => {
+      console.log(`👑🔄 [Supervisor:${supervisorName}] Delegating to ${agent.name}`);
     },
   });
 };
@@ -156,21 +150,20 @@ export const createSupervisorHooks = (supervisorName: string) => {
  * Specialized hooks for sub-agents
  */
 export const createSubAgentHooks = (subAgentName: string, specialty: string) => {
-  return createHooks({
-    onStart: async ({ agent, context }: OnStartHookArgs) => {
+  return createHooks({    onStart: async ({ agent, context }: OnStartHookArgs) => {
       const parentOp = context.userContext.get("supervisorOperationId");
       context.userContext.set("subAgentSpecialty", specialty);
       
-      console.log(`🤖 [SubAgent:${agent.name}] Handling ${specialty} task (parent: ${parentOp})`);
+      console.log(`🤖 [SubAgent:${subAgentName}/${agent.name}] Handling ${specialty} task (parent: ${parentOp})`);
     },
 
     onEnd: async ({ agent, output, error, context }: OnEndHookArgs) => {
       const specialty = context.userContext.get("subAgentSpecialty");
       
       if (error) {
-        console.error(`🤖❌ [SubAgent:${agent.name}] Failed ${specialty} task: ${error.message}`);
-      } else {
-        console.log(`🤖✅ [SubAgent:${agent.name}] Completed ${specialty} task successfully`);
+        console.error(`🤖❌ [SubAgent:${subAgentName}/${agent.name}] Failed ${specialty} task: ${error.message}`);
+      } else if (output) {
+        console.log(`🤖✅ [SubAgent:${subAgentName}/${agent.name}] Completed ${specialty} task successfully`);
       }
     },
   });

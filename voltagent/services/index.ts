@@ -16,16 +16,10 @@ export {
 
 // Context Management
 export {
-  createInitialContext,
-  addReferences,
-  trackToolUsage,
-  trackDelegation,
-  trackConversationTurn,
-  trackError,
-  trackMemoryOperation,
-  getContextSummary,
+  userContext,
   contextService,
-  ContextService
+  ContextService,
+  contextHelpers
 } from "./context";
 
 // Hooks

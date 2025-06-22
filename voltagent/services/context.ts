@@ -1,336 +1,239 @@
 /**
  * Context Service for VoltAgent
- * Manages userContext flow and data sharing across agents, tools, and retrievers
+ * Provides user context management and cross-agent data sharing
  */
 
 /**
- * Create initial userContext with common tracking data
+ * Simple user context implementation for maintaining state across agent interactions
  */
-export function createInitialContext(options: {
-  userId?: string;
-  sessionId?: string;
-  language?: string;
-  metadata?: Record<string, unknown>;
-} = {}): Map<string, unknown> {
-  const context = new Map<string, unknown>();
-  
-  // Set default values
-  context.set("userId", options.userId || "default");
-  context.set("sessionId", options.sessionId || `session-${Date.now()}`);
-  context.set("language", options.language || "English");
-  context.set("createdAt", new Date().toISOString());
-  
-  // Add any additional metadata
-  if (options.metadata) {
-    for (const [key, value] of Object.entries(options.metadata)) {
-      context.set(key, value);
-    }
+class UserContextMap extends Map<string, any> {
+  constructor() {
+    super();
   }
-  
-  console.log(`📝 Created initial context for user ${context.get("userId")}`);
-  return context;
 }
 
 /**
- * Context helper for tracking references from retrievers
+ * User Context for maintaining state across agent interactions
+ * This context flows through the agent lifecycle and between agents
  */
-export function addReferences(
-  userContext: Map<string, unknown>,
-  references: Array<{
-    id: string;
-    title: string;
-    source: string;
-    url?: string;
-    tags?: string[];
-  }>
-): void {
-  const existingRefs = (userContext.get("references") as typeof references) || [];
-  const updatedRefs = [...existingRefs, ...references];
-  
-  userContext.set("references", updatedRefs);
-  userContext.set("lastReferenceUpdate", new Date().toISOString());
-  
-  console.log(`📚 Added ${references.length} references to context (total: ${updatedRefs.length})`);
-}
+export const userContext = new UserContextMap();
 
 /**
- * Context helper for tracking tool usage
- */
-export function trackToolUsage(
-  userContext: Map<string, unknown>,
-  toolName: string,
-  result: unknown,
-  success: boolean = true
-): void {
-  const toolHistory = (userContext.get("toolHistory") as Array<{
-    name: string;
-    timestamp: string;
-    success: boolean;
-    result?: unknown;
-  }>) || [];
-  
-  toolHistory.push({
-    name: toolName,
-    timestamp: new Date().toISOString(),
-    success,
-    result: success ? result : undefined
-  });
-  
-  userContext.set("toolHistory", toolHistory);
-  userContext.set("totalToolCalls", toolHistory.length);
-  userContext.set("successfulToolCalls", toolHistory.filter(t => t.success).length);
-  
-  console.log(`🔧 Tracked tool usage: ${toolName} (${success ? "success" : "failure"})`);
-}
-
-/**
- * Context helper for tracking agent delegation
- */
-export function trackDelegation(
-  userContext: Map<string, unknown>,
-  fromAgent: string,
-  toAgent: string,
-  task: string
-): void {
-  const delegations = (userContext.get("delegations") as Array<{
-    from: string;
-    to: string;
-    task: string;
-    timestamp: string;
-  }>) || [];
-  
-  delegations.push({
-    from: fromAgent,
-    to: toAgent,
-    task,
-    timestamp: new Date().toISOString()
-  });
-  
-  userContext.set("delegations", delegations);
-  userContext.set("delegationCount", delegations.length);
-  
-  console.log(`👥 Tracked delegation: ${fromAgent} → ${toAgent}`);
-}
-
-/**
- * Context helper for conversation flow tracking
- */
-export function trackConversationTurn(
-  userContext: Map<string, unknown>,
-  userInput: string,
-  assistantResponse: string,
-  metadata?: {
-    tokenUsage?: number;
-    toolsUsed?: string[];
-    responseTime?: number;
-  }
-): void {
-  const conversation = (userContext.get("conversationHistory") as Array<{
-    turn: number;
-    userInput: string;
-    assistantResponse: string;
-    timestamp: string;
-    metadata?: typeof metadata;
-  }>) || [];
-  
-  conversation.push({
-    turn: conversation.length + 1,
-    userInput,
-    assistantResponse,
-    timestamp: new Date().toISOString(),
-    metadata
-  });
-  
-  userContext.set("conversationHistory", conversation);
-  userContext.set("conversationTurns", conversation.length);
-  
-  console.log(`💬 Tracked conversation turn ${conversation.length}`);
-}
-
-/**
- * Context helper for error tracking
- */
-export function trackError(
-  userContext: Map<string, unknown>,
-  error: {
-    type: string;
-    message: string;
-    component: "agent" | "tool" | "retriever" | "memory";
-    componentName?: string;
-  }
-): void {
-  const errors = (userContext.get("errors") as Array<typeof error & { timestamp: string }>) || [];
-  
-  errors.push({
-    ...error,
-    timestamp: new Date().toISOString()
-  });
-  
-  userContext.set("errors", errors);
-  userContext.set("errorCount", errors.length);
-  userContext.set("lastError", error);
-  
-  console.error(`❌ Tracked error in ${error.component}:${error.componentName}: ${error.message}`);
-}
-
-/**
- * Context helper for memory operations
- */
-export function trackMemoryOperation(
-  userContext: Map<string, unknown>,
-  operation: "store" | "retrieve" | "search",
-  details: {
-    collection?: string;
-    query?: string;
-    resultCount?: number;
-    success: boolean;
-  }
-): void {
-  const memoryOps = (userContext.get("memoryOperations") as Array<{
-    operation: typeof operation;
-    timestamp: string;
-    details: typeof details;
-  }>) || [];
-  
-  memoryOps.push({
-    operation,
-    timestamp: new Date().toISOString(),
-    details
-  });
-  
-  userContext.set("memoryOperations", memoryOps);
-  userContext.set("memoryOperationCount", memoryOps.length);
-  
-  console.log(`🧠 Tracked memory operation: ${operation} (${details.success ? "success" : "failure"})`);
-}
-
-/**
- * Get comprehensive context summary for debugging
- */
-export function getContextSummary(userContext: Map<string, unknown>): {
-  basic: Record<string, unknown>;
-  metrics: Record<string, number>;
-  recent: Record<string, unknown>;
-} {
-  return {
-    basic: {
-      userId: userContext.get("userId"),
-      sessionId: userContext.get("sessionId"),
-      language: userContext.get("language"),
-      createdAt: userContext.get("createdAt")
-    },
-    metrics: {
-      conversationTurns: (userContext.get("conversationTurns") as number) || 0,
-      totalToolCalls: (userContext.get("totalToolCalls") as number) || 0,
-      successfulToolCalls: (userContext.get("successfulToolCalls") as number) || 0,
-      delegationCount: (userContext.get("delegationCount") as number) || 0,
-      errorCount: (userContext.get("errorCount") as number) || 0,
-      memoryOperationCount: (userContext.get("memoryOperationCount") as number) || 0,
-      referencesCount: ((userContext.get("references") as unknown[]) || []).length
-    },
-    recent: {
-      lastError: userContext.get("lastError"),
-      lastReferenceUpdate: userContext.get("lastReferenceUpdate"),
-      recentTools: ((userContext.get("toolHistory") as unknown[]) || []).slice(-3),
-      recentDelegations: ((userContext.get("delegations") as unknown[]) || []).slice(-2)
-    }
-  };
-}
-
-/**
- * Context Service for managing context across operations
+ * Context Service for managing user sessions and cross-agent data
  */
 export class ContextService {
-  private activeContexts = new Map<string, Map<string, unknown>>();
+  private context = userContext;
 
   /**
-   * Create and store a new context
+   * Set a value in the user context
    */
-  createContext(sessionId: string, options?: {
-    userId?: string;
-    language?: string;
-    metadata?: Record<string, unknown>;
-  }): Map<string, unknown> {
-    const context = createInitialContext({
-      sessionId,
-      ...options
+  set(key: string, value: any) {
+    this.context.set(key, value);
+  }
+
+  /**
+   * Get a value from the user context
+   */
+  get(key: string) {
+    return this.context.get(key);
+  }
+
+  /**
+   * Check if a key exists in the context
+   */
+  has(key: string): boolean {
+    return this.context.has(key);
+  }
+
+  /**
+   * Delete a key from the context
+   */
+  delete(key: string): boolean {
+    return this.context.delete(key);
+  }
+
+  /**
+   * Clear all context data
+   */
+  clear() {
+    this.context.clear();
+  }
+  /**
+   * Get all context data as an object
+   */
+  getAll(): Record<string, any> {
+    const data: Record<string, any> = {};
+    this.context.forEach((value: any, key: string) => {
+      data[key] = value;
     });
+    return data;
+  }
+
+  /**
+   * Initialize session context with user data
+   */
+  initializeSession(userId: string, sessionId: string, metadata?: Record<string, any>) {
+    this.set("userId", userId);
+    this.set("sessionId", sessionId);
+    this.set("sessionStartTime", new Date().toISOString());
     
-    this.activeContexts.set(sessionId, context);
-    return context;
-  }
-
-  /**
-   * Get an existing context
-   */
-  getContext(sessionId: string): Map<string, unknown> | undefined {
-    return this.activeContexts.get(sessionId);
-  }
-
-  /**
-   * Update context data
-   */
-  updateContext(sessionId: string, updates: Record<string, unknown>): boolean {
-    const context = this.activeContexts.get(sessionId);
-    if (!context) return false;
-
-    for (const [key, value] of Object.entries(updates)) {
-      context.set(key, value);
+    if (metadata) {
+      Object.entries(metadata).forEach(([key, value]) => {
+        this.set(key, value);
+      });
     }
-
-    return true;
   }
 
   /**
-   * Clean up old contexts
+   * Get session information
    */
-  cleanup(maxAge: number = 24 * 60 * 60 * 1000): number { // 24 hours default
-    let cleaned = 0;
-    const cutoff = Date.now() - maxAge;
-
-    for (const [sessionId, context] of this.activeContexts.entries()) {
-      const createdAt = context.get("createdAt") as string;
-      if (createdAt && new Date(createdAt).getTime() < cutoff) {
-        this.activeContexts.delete(sessionId);
-        cleaned++;
-      }
-    }
-
-    if (cleaned > 0) {
-      console.log(`🧹 Cleaned up ${cleaned} old contexts`);
-    }
-
-    return cleaned;
-  }
-
-  /**
-   * Get summary of all active contexts
-   */
-  getSummary(): {
-    totalContexts: number;
-    contexts: Array<{
-      sessionId: string;
-      userId: string;
-      createdAt: string;
-      metrics: Record<string, number>;
-    }>;
-  } {
-    const contexts = Array.from(this.activeContexts.entries()).map(([sessionId, context]) => {
-      const summary = getContextSummary(context);
-      return {
-        sessionId,
-        userId: summary.basic.userId as string,
-        createdAt: summary.basic.createdAt as string,
-        metrics: summary.metrics
-      };
-    });
-
+  getSessionInfo() {
     return {
-      totalContexts: contexts.length,
-      contexts
+      userId: this.get("userId"),
+      sessionId: this.get("sessionId"),
+      sessionStartTime: this.get("sessionStartTime"),
+      currentAgent: this.get("currentAgent"),
+      operationId: this.get("operationId")
     };
+  }
+
+  /**
+   * Set current agent context
+   */
+  setCurrentAgent(agentName: string, operation?: string) {
+    this.set("currentAgent", agentName);
+    this.set("lastAgentChange", new Date().toISOString());
+    
+    if (operation) {
+      this.set("currentOperation", operation);
+    }
+  }
+
+  /**
+   * Track agent handoffs and delegation flow
+   */
+  trackHandoff(fromAgent: string, toAgent: string, reason?: string) {
+    const handoffs = this.get("handoffs") || [];
+    handoffs.push({
+      from: fromAgent,
+      to: toAgent,
+      reason,
+      timestamp: new Date().toISOString()
+    });
+    this.set("handoffs", handoffs);
+  }
+
+  /**
+   * Store operation results for cross-agent access
+   */
+  storeResult(operationId: string, result: any, agentName: string) {
+    const results = this.get("operationResults") || {};
+    results[operationId] = {
+      result,
+      agentName,
+      timestamp: new Date().toISOString()
+    };
+    this.set("operationResults", results);
+  }
+
+  /**
+   * Get result from a previous operation
+   */
+  getResult(operationId: string) {
+    const results = this.get("operationResults") || {};
+    return results[operationId];
+  }
+
+  /**
+   * Set user preferences
+   */
+  setPreferences(preferences: Record<string, any>) {
+    this.set("userPreferences", preferences);
+  }
+
+  /**
+   * Get user preferences
+   */
+  getPreferences(): Record<string, any> {
+    return this.get("userPreferences") || {};
+  }
+
+  /**
+   * Update a specific preference
+   */
+  updatePreference(key: string, value: any) {
+    const prefs = this.getPreferences();
+    prefs[key] = value;
+    this.setPreferences(prefs);
   }
 }
 
-// Export singleton instance
+/**
+ * Global context service instance
+ */
 export const contextService = new ContextService();
+
+/**
+ * Helper functions for common context operations
+ */
+export const contextHelpers = {
+  /**
+   * Quick session initialization
+   */
+  initSession: (userId: string, sessionId?: string) => {
+    const sid = sessionId || `session-${Date.now()}`;
+    contextService.initializeSession(userId, sid);
+    return sid;
+  },
+
+  /**
+   * Track conversation flow
+   */
+  trackConversation: (conversationId: string, message: string, role: 'user' | 'assistant') => {
+    const conversations = contextService.get("conversations") || {};
+    if (!conversations[conversationId]) {
+      conversations[conversationId] = [];
+    }
+    
+    conversations[conversationId].push({
+      message,
+      role,
+      timestamp: new Date().toISOString()
+    });
+    
+    contextService.set("conversations", conversations);
+  },
+
+  /**
+   * Get conversation history
+   */
+  getConversation: (conversationId: string) => {
+    const conversations = contextService.get("conversations") || {};
+    return conversations[conversationId] || [];
+  },
+
+  /**
+   * Store file or resource references
+   */
+  storeReference: (type: string, reference: any) => {
+    const refs = contextService.get("references") || {};
+    if (!refs[type]) {
+      refs[type] = [];
+    }
+    
+    refs[type].push({
+      ...reference,
+      timestamp: new Date().toISOString()
+    });
+    
+    contextService.set("references", refs);
+  },
+
+  /**
+   * Get references by type
+   */
+  getReferences: (type: string) => {
+    const refs = contextService.get("references") || {};
+    return refs[type] || [];
+  }
+};

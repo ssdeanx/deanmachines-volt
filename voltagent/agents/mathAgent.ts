@@ -45,10 +45,15 @@ const mathReasoningTools = createReasoningTools({
 export const mathAgent = new Agent({
   name: "MathAssistant",
   description: "A helpful assistant that can answer questions and perform calculations using advanced mathematical reasoning with structured thinking",
-  instructions: mathPrompt(),  llm: new VercelAIProvider(),
+  instructions: mathPrompt(),
+  llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [mathReasoningTools, calculatorTool],
   hooks: createSubAgentHooks("MathAssistant", "mathematical calculations"),
   // Memory for tracking calculation history and mathematical context
   memory: memoryStorage,
+  thinkingConfig: {
+    thinkingBudget: 0,
+    includeThoughts: false
+  }
 });

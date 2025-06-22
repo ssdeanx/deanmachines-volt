@@ -4,6 +4,7 @@
  */
 import { BaseRetriever, type BaseMessage, type RetrieveOptions } from "@voltagent/core";
 import { LibSQLStorage } from "@voltagent/core";
+import { contextService } from "./context";
 
 /**
  * Real Document Retriever - connects to actual document sources
@@ -38,22 +39,58 @@ export class DocumentRetriever extends BaseRetriever {
       return "Error retrieving documents.";
     }
   }
-
   private async searchFilesystem(query: string, options: RetrieveOptions): Promise<string> {
+    // Use context service to track search operations
+    const operationId = `fs-search-${Date.now()}`;
+    contextService.storeResult(operationId, { query, source: 'filesystem' }, 'DocumentRetriever');
+    
     // TODO: Implement real filesystem search using MCP filesystem server
     // This would use the MCP tools to actually search files
+    contextService.get("searches")?.push({
+      type: 'filesystem',
+      query,
+      timestamp: new Date().toISOString(),
+      status: 'not_implemented'
+    });
+    
     return "Filesystem search not yet implemented - requires MCP filesystem integration.";
   }
 
   private async searchDatabase(query: string, options: RetrieveOptions): Promise<string> {
+    // Use context service to track search operations
+    const operationId = `db-search-${Date.now()}`;
+    contextService.storeResult(operationId, { query, source: 'database' }, 'DocumentRetriever');
+    
     // TODO: Implement real database search using vector embeddings
     // This would use a vector database like Qdrant, Pinecone, or Supabase Vector
+    const searches = contextService.get("searches") || [];
+    searches.push({
+      type: 'database',
+      query,
+      timestamp: new Date().toISOString(),
+      status: 'not_implemented'
+    });
+    contextService.set("searches", searches);
+    
     return "Database search not yet implemented - requires vector database setup.";
   }
 
   private async searchAPI(query: string, options: RetrieveOptions): Promise<string> {
+    // Use context service to track search operations
+    const operationId = `api-search-${Date.now()}`;
+    contextService.storeResult(operationId, { query, source: 'api' }, 'DocumentRetriever');
+    
     // TODO: Implement real API search using external services
     // This would connect to external knowledge APIs
+    const searches = contextService.get("searches") || [];
+    searches.push({
+      type: 'api',
+      query,
+      timestamp: new Date().toISOString(),
+      status: 'not_implemented'
+    });
+    contextService.set("searches", searches);
+    
     return "API search not yet implemented - requires external API configuration.";
   }
 }
@@ -69,13 +106,21 @@ export class MemoryRetriever extends BaseRetriever {
   ) {
     super(options);
   }
-
   async retrieve(input: string | BaseMessage[], options: RetrieveOptions): Promise<string> {
     const query = typeof input === "string" ? input : (input[input.length - 1].content as string);
     console.log(`MemoryRetriever: Searching memory for "${query}"`);
 
+    // Track retrieval in context service
+    const retrievalId = `memory-retrieval-${Date.now()}`;
+    contextService.storeResult(retrievalId, { query, type: 'memory' }, 'MemoryRetriever');
+
     try {
-      const userId = options.userContext?.get("userId") as string || "default";      // Get recent conversations from LibSQL storage
+      // Try to get userId from VoltAgent's context first, then fallback to our context service
+      const userId = options.userContext?.get("userId") as string || 
+                    contextService.get("userId") as string || 
+                    "default";
+
+      // Get recent conversations from LibSQL storage
       const conversations = await this.memoryStorage.getConversationsByUserId(userId, {
         limit: 10,
         orderBy: "updated_at",
@@ -108,12 +153,33 @@ export class MemoryRetriever extends BaseRetriever {
           .map((memory) => `**${memory.title}** (${memory.date})\nSummary: ${memory.summary}\nMessages: ${memory.messageCount}`)
           .join("\n\n");
 
+        // Store successful retrieval in context
+        contextService.storeResult(retrievalId + '-success', {
+          query,
+          memoriesFound: relevantMemories.length,
+          userId
+        }, 'MemoryRetriever');
+
         return `## Recent Relevant Memories\n\n${memoryContext}`;
       }
+
+      // Store no results found in context
+      contextService.storeResult(retrievalId + '-empty', {
+        query,
+        memoriesFound: 0,
+        userId
+      }, 'MemoryRetriever');
 
       return "No relevant memories found in conversation history.";
     } catch (error) {
       console.error("Memory retrieval error:", error);
+      
+      // Store error in context
+      contextService.storeResult(retrievalId + '-error', {
+        query,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }, 'MemoryRetriever');
+      
       return "Error accessing memory storage.";
     }
   }
@@ -124,13 +190,21 @@ export class MemoryRetriever extends BaseRetriever {
  */
 export class RetrieverService {
   private retrievers: Map<string, BaseRetriever> = new Map();
-
   /**
    * Register a retriever with a name
    */
   registerRetriever(name: string, retriever: BaseRetriever) {
     this.retrievers.set(name, retriever);
     console.log(`Registered retriever: ${name}`);
+    
+    // Track retriever registration in context
+    const registeredRetrievers = contextService.get("registeredRetrievers") || [];
+    registeredRetrievers.push({
+      name,
+      type: retriever.constructor.name,
+      registeredAt: new Date().toISOString()
+    });
+    contextService.set("registeredRetrievers", registeredRetrievers);
   }
 
   /**

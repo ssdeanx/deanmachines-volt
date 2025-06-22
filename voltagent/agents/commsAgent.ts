@@ -35,8 +35,7 @@ Always be professional and considerate in communications.`,
       tool.name?.toLowerCase().includes('notification') ||
       tool.name?.toLowerCase().includes('chat')
     );
-  },
-  hooks: createSubAgentHooks("Communicator", "communication and collaboration"),
+  },  hooks: createSubAgentHooks("Communicator", "communication and collaboration"),
   // Memory for tracking communication history and contacts
   memory: memoryStorage,
   // Retriever for accessing communication templates and contact information
@@ -44,4 +43,8 @@ Always be professional and considerate in communications.`,
     toolName: "search_comms_templates",
     toolDescription: "Search communication templates and contact information"
   }),
+  thinkingConfig: {
+    thinkingBudget: 0,
+    includeThoughts: false
+  }
 });

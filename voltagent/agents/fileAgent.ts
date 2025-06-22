@@ -28,8 +28,7 @@ Always be careful with file operations and confirm destructive actions.`,
   tools: async () => {
     const tools = await mcpToolsService.getToolsSafe();
     return mcpToolsService.getToolsForAgent('file');
-  },
-  hooks: createSubAgentHooks("FileManager", "file operations and storage"),
+  },  hooks: createSubAgentHooks("FileManager", "file operations and storage"),
   // Memory for tracking file operations and states
   memory: memoryStorage,
   // Retriever for searching through file contents and metadata
@@ -37,4 +36,8 @@ Always be careful with file operations and confirm destructive actions.`,
     toolName: "search_files",
     toolDescription: "Search through file contents and metadata"
   }),
+  thinkingConfig: {
+    thinkingBudget: 0,
+    includeThoughts: false
+  }
 });
