@@ -1,20 +1,14 @@
-import { Agent } from "@voltagent/core";
+import { Agent, createPrompt, createReasoningTools } from "@voltagent/core";
 import { VercelAIProvider } from "@voltagent/vercel-ai";
 import { google } from "../config/googleProvider";
 import { mcpToolsService } from "../services/mcp";
 import { createSubAgentHooks } from "../services/hooks";
 import { memoryStorage } from "../services/memory";
-import { DocumentRetriever } from "../services/retriever";
+import { MemoryRetriever } from "../services/retriever";
 
-/**
- * Communication Agent
- * Handles team communication, notifications, and collaboration tools
- * Uses Slack and other communication MCP tools
- */
-export const commsAgent = new Agent({
-  name: "Communicator",
-  description: "Specialized agent for team communication, notifications, and collaboration",
-  instructions: `You are a communication and collaboration specialist. You can:
+// Create dynamic prompt for communication tasks
+const commsPrompt = createPrompt({
+  template: `You are a communication and collaboration specialist. You can:
 - Send messages and notifications via Slack
 - Manage team communications and updates
 - Schedule and coordinate meetings and events
@@ -24,24 +18,59 @@ export const commsAgent = new Agent({
 - Create and manage communication workflows
 - Integrate with team productivity tools
 
-Always be professional and considerate in communications.`,
+Communication Type: {{comm_type}}
+Urgency Level: {{urgency}}
+Audience: {{audience}}
+
+{{communication_strategy}}
+
+Always use 'think' to plan communications before sending them. Use 'analyze' to evaluate message effectiveness and team responses. Always be professional and considerate in communications.`,
+  variables: {
+    comm_type: "team collaboration",
+    urgency: "standard",
+    audience: "team members",
+    communication_strategy: "Focus on clear, professional communication. Consider timing and audience appropriateness."
+  }
+});
+
+// Create reasoning tools for communication analysis
+const commsReasoningTools = createReasoningTools({
+  think: true,
+  analyze: true,
+  addInstructions: true,
+  addFewShot: true
+});
+
+/**
+ * Communication Agent
+ * Handles team communication, notifications, and collaboration tools
+ * Uses Slack and other communication MCP tools
+ */
+export const commsAgent = new Agent({
+  name: "Communicator",
+  description: "Specialized agent for team communication, notifications, and collaboration with structured reasoning",
+  instructions: commsPrompt(),
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: async () => {
     const allTools = await mcpToolsService.getToolsSafe();
     // Get communication-related tools (Slack, etc.)
-    return allTools.filter(tool => 
-      tool.name?.toLowerCase().includes('slack') ||      tool.name?.toLowerCase().includes('message') ||
+    const commTools = allTools.filter(tool => 
+      tool.name?.toLowerCase().includes('slack') ||
+      tool.name?.toLowerCase().includes('message') ||
       tool.name?.toLowerCase().includes('notification') ||
       tool.name?.toLowerCase().includes('chat')
     );
-  },  hooks: createSubAgentHooks("Communicator", "communication and collaboration"),
-  // Memory for tracking communication history and contacts
+    return [
+      commsReasoningTools, // Add reasoning tools for communication analysis
+      ...commTools
+    ];
+  },hooks: createSubAgentHooks("Communicator", "communication and collaboration"),  // Memory for tracking communication history and contacts
   memory: memoryStorage,
-  // Retriever for accessing communication templates and contact information
-  retriever: new DocumentRetriever('database', undefined, {
-    toolName: "search_comms_templates",
-    toolDescription: "Search communication templates and contact information"
+  // Retriever for accessing communication history and context
+  retriever: new MemoryRetriever(memoryStorage, {
+    toolName: "search_comms_history",
+    toolDescription: "Search communication history and context"
   }),
   thinkingConfig: {
     thinkingBudget: 0,

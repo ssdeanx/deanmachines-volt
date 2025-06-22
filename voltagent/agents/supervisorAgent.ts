@@ -10,7 +10,7 @@ import { commsAgent } from "./commsAgent";
 import { memoryAgent } from "./memoryAgent";
 import { createSupervisorHooks } from "../services/hooks";
 import { memoryStorage } from "../services/memory";
-import { DocumentRetriever } from "../services/retriever";
+import { MemoryRetriever } from "../services/retriever";
 
 // Create dynamic prompt template for supervisor instructions
 const supervisorPrompt = createPrompt({
@@ -63,13 +63,12 @@ export const supervisorAgent = new Agent({
     dataAgent,
     commsAgent,
     memoryAgent
-  ],  hooks: createSupervisorHooks("Boss"),
-  // Memory for maintaining conversation context and task coordination
+  ],  hooks: createSupervisorHooks("Boss"),  // Memory for maintaining conversation context and task coordination
   memory: memoryStorage,
-  // Retriever for accessing knowledge across all domains
-  retriever: new DocumentRetriever('database', undefined, {
-    toolName: "search_all_knowledge",
-    toolDescription: "Search across all stored knowledge and documentation"
+  // Retriever for accessing knowledge across all domains - using memory retriever for working functionality
+  retriever: new MemoryRetriever(memoryStorage, {
+    toolName: "search_conversation_history",
+    toolDescription: "Search across conversation history and stored knowledge"
   }),
   thinkingConfig: {
     thinkingBudget: 0,
