@@ -49,11 +49,17 @@ export const mathAgent = new Agent({
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [mathReasoningTools, calculatorTool],
-  hooks: createSubAgentHooks("MathAssistant", "mathematical calculations"),
+  hooks: createSubAgentHooks("MathAssistant", "mathematical calculations", {
+    verbose: false, // Set to true for debugging mathematical operations
+    performance: true,
+    analytics: true,
+    logPrefix: "[VoltAgent:Math]"
+  }),
   // Memory for tracking calculation history and mathematical context
   memory: memoryStorage,
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false
-  }
+  },
+  structuredOutputs: true // Enable structured outputs for better mathematical reasoning and results
 });

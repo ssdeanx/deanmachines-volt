@@ -57,7 +57,13 @@ export const memoryAgent = new Agent({
       ...mcpToolsService.getMemoryTools(),
       ...mcpToolsService.getThinkingTools()
     ];
-  },  hooks: createSubAgentHooks("KnowledgeKeeper", "memory and knowledge management"),
+  },  
+  hooks: createSubAgentHooks("KnowledgeKeeper", "memory and knowledge management", {
+    verbose: false, // Set to true for debugging memory operations
+    performance: true,
+    analytics: true,
+    logPrefix: "[VoltAgent:Memory]"
+  }),
   // Memory for conversation context and knowledge storage
   memory: memoryStorage,
   // Retriever for accessing stored knowledge and conversations
@@ -68,5 +74,6 @@ export const memoryAgent = new Agent({
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false
-  }
+  },
+  structuredOutputs: true // Enable structured outputs for better knowledge organization and retrieval
 });

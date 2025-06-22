@@ -65,7 +65,13 @@ export const commsAgent = new Agent({
       commsReasoningTools, // Add reasoning tools for communication analysis
       ...commTools
     ];
-  },hooks: createSubAgentHooks("Communicator", "communication and collaboration"),  // Memory for tracking communication history and contacts
+  },  
+  hooks: createSubAgentHooks("Communicator", "communication and collaboration", {
+    verbose: false, // Set to true for debugging communications
+    performance: true,
+    analytics: true,
+    logPrefix: "[VoltAgent:Comms]"
+  }),// Memory for tracking communication history and contacts
   memory: memoryStorage,
   // Retriever for accessing communication history and context
   retriever: new MemoryRetriever(memoryStorage, {
@@ -75,5 +81,6 @@ export const commsAgent = new Agent({
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false
-  }
+  },
+  structuredOutputs: true // Enable structured outputs for better communication planning and execution
 });

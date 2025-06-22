@@ -55,7 +55,13 @@ export const webAgent = new Agent({
       researchReasoningTools, // Add reasoning tools for research analysis
       ...mcpToolsService.getToolsForAgent('research')
     ];
-  },  hooks: createSubAgentHooks("WebResearcher", "web research and browsing"),  // Memory for maintaining research context and findings
+  },  
+  hooks: createSubAgentHooks("WebResearcher", "web research and browsing", {
+    verbose: false, // Set to true for debugging web operations
+    performance: true,
+    analytics: true,
+    logPrefix: "[VoltAgent:Web]"
+  }),  // Memory for maintaining research context and findings
   memory: memoryStorage,
   // Retriever for web search and online research
   retriever: new DocumentRetriever('api', undefined, {
@@ -65,5 +71,6 @@ export const webAgent = new Agent({
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false
-  }
+  },
+  structuredOutputs: true // Enable structured outputs for better research findings and summaries
 });

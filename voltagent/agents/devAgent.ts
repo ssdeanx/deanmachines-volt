@@ -55,7 +55,13 @@ export const devAgent = new Agent({
       devReasoningTools, // Add reasoning tools for development analysis
       ...mcpToolsService.getToolsForAgent('dev')
     ];
-  },  hooks: createSubAgentHooks("Developer", "development and DevOps"),
+  },  
+  hooks: createSubAgentHooks("Developer", "development and DevOps", {
+    verbose: false, // Set to true for debugging development operations
+    performance: true,
+    analytics: true,
+    logPrefix: "[VoltAgent:Dev]"
+  }),
   // Memory for tracking development context and project state
   memory: memoryStorage,
   // Retriever for accessing code documentation and project knowledge
@@ -66,5 +72,6 @@ export const devAgent = new Agent({
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false
-  }
+  },
+  structuredOutputs: true // Enable structured outputs for better development planning and execution
 });

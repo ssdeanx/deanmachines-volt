@@ -45,6 +45,7 @@ new VoltAgent({
   }),
 });
 
+
  // Initialize OpenTelemetry SDK
     const sdk = new NodeSDK({
       traceExporter: new ConsoleSpanExporter(),
@@ -52,3 +53,9 @@ new VoltAgent({
     });
     
     sdk.start();
+
+// Handle graceful shutdown
+process.on("SIGTERM", () => sdk.shutdown());
+process.on("SIGINT", () => sdk.shutdown());
+
+

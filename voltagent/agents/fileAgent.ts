@@ -55,7 +55,13 @@ export const fileAgent = new Agent({
       fileReasoningTools, // Add reasoning tools for file analysis
       ...mcpToolsService.getToolsForAgent('file')
     ];
-  },hooks: createSubAgentHooks("FileManager", "file operations and storage"),
+  },  
+  hooks: createSubAgentHooks("FileManager", "file operations and storage", {
+    verbose: false, // Set to true for debugging file operations
+    performance: true,
+    analytics: true,
+    logPrefix: "[VoltAgent:File]"
+  }),
   // Memory for tracking file operations and states
   memory: memoryStorage,
   // Retriever for searching through file contents and metadata
@@ -66,5 +72,6 @@ export const fileAgent = new Agent({
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false
-  }
+  },
+  structuredOutputs: true // Enable structured outputs for better file management and retrieval
 });

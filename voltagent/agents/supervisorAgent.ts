@@ -63,7 +63,13 @@ export const supervisorAgent = new Agent({
     dataAgent,
     commsAgent,
     memoryAgent
-  ],  hooks: createSupervisorHooks("Boss"),  // Memory for maintaining conversation context and task coordination
+  ],  
+  hooks: createSupervisorHooks("Boss", {
+    verbose: false, // Set to true for debugging
+    performance: true,
+    analytics: true,
+    logPrefix: "[VoltAgent:Boss]"
+  }),  // Memory for maintaining conversation context and task coordination
   memory: memoryStorage,
   // Retriever for accessing knowledge across all domains - using memory retriever for working functionality
   retriever: new MemoryRetriever(memoryStorage, {
@@ -73,5 +79,6 @@ export const supervisorAgent = new Agent({
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false
-  }
+  },
+  structuredOutputs: true // Enable structured outputs for better task delegation and coordination
 });

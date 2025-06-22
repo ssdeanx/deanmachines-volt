@@ -1,4 +1,4 @@
-import { agent } from "@/voltagent";
+import { supervisorAgent, subAgents } from "@/voltagent/agents";
 import { mergeIntoDataStream } from "@voltagent/vercel-ui";
 import { createDataStreamResponse } from "ai";
 
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     return createDataStreamResponse({
       async execute(dataStream) {
         try {
-          const result = await agent.streamText(lastMessage.content);
+          const result = await supervisorAgent.streamText(lastMessage.content);
 
           // biome-ignore lint/style/noNonNullAssertion: always exists
           mergeIntoDataStream(dataStream, result.fullStream!);

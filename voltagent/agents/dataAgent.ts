@@ -57,7 +57,13 @@ export const dataAgent = new Agent({
       dataReasoningTools, // Add reasoning tools for data analysis
       ...mcpToolsService.getToolsForAgent('data')
     ];
-  },hooks: createSubAgentHooks("DataManager", "database and data operations"),  // Memory for tracking data operations and query history
+  },  
+  hooks: createSubAgentHooks("DataManager", "database and data operations", {
+    verbose: false, // Set to true for debugging data operations
+    performance: true,
+    analytics: true,
+    logPrefix: "[VoltAgent:Data]"
+  }),// Memory for tracking data operations and query history
   memory: memoryStorage,
   // Retriever for accessing data analysis history and context
   retriever: new MemoryRetriever(memoryStorage, {
@@ -67,5 +73,6 @@ export const dataAgent = new Agent({
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false
-  }
+  },
+  structuredOutputs: true // Enable structured outputs for better data management and analysis
 });
