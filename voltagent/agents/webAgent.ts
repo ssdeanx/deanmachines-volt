@@ -4,7 +4,7 @@ import { google } from "../config/googleProvider";
 import { mcpToolsService } from "../services/mcp";
 import { createSubAgentHooks } from "../services/hooks";
 import { memoryStorage } from "../services/memory";
-import { DocumentRetriever } from "../services/retriever";
+import { MemoryRetriever } from "../services/retriever";
 
 // Create dynamic prompt for web research
 const researchPrompt = createPrompt({
@@ -47,8 +47,10 @@ const researchReasoningTools = createReasoningTools({
  */
 export const webAgent = new Agent({
   name: "WebResearcher",
+  purpose: "To conduct web research, browse websites, and extract online information.",
   description: "Specialized agent for web research, browsing, and online data extraction with structured analysis",
-  instructions: researchPrompt(),  llm: new VercelAIProvider(),
+  instructions: researchPrompt(),
+  llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: async () => {
     return [
@@ -57,16 +59,16 @@ export const webAgent = new Agent({
     ];
   },  
   hooks: createSubAgentHooks("WebResearcher", "web research and browsing", {
-    verbose: false, // Set to true for debugging web operations
+    verbose: true, // Set to true for debugging web operations
     performance: true,
     analytics: true,
     logPrefix: "[VoltAgent:Web]"
   }),  // Memory for maintaining research context and findings
   memory: memoryStorage,
-  // Retriever for web search and online research
-  retriever: new DocumentRetriever('api', undefined, {
-    toolName: "search_web",
-    toolDescription: "Search the web for current information and research"
+  // Retriever for accessing memory and conversation history related to web research
+  retriever: new MemoryRetriever(memoryStorage, {
+    toolName: "search_web_history",
+    toolDescription: "Search through memory and conversation history related to web research"
   }),
   thinkingConfig: {
     thinkingBudget: 0,

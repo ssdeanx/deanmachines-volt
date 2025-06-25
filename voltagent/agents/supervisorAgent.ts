@@ -38,11 +38,12 @@ Always use the 'think' tool first to analyze requests and plan delegation. For c
 });
 
 // Create reasoning tools for structured thinking
+// Create reasoning tools for structured thinking
 const reasoningToolkit = createReasoningTools({
   think: true,
   analyze: true,
-  addInstructions: true,
-  addFewShot: true
+  addInstructions: false,
+  addFewShot: false
 });
 
 /**
@@ -51,27 +52,29 @@ const reasoningToolkit = createReasoningTools({
  * Uses Gemini Flash Lite for fast coordination and delegation
  */
 export const supervisorAgent = new Agent({
-  name: "Boss",
-  description: "A Supervisor that coordinates between specialized sub-agents for comprehensive task management using structured reasoning and delegation",
-  instructions: supervisorPrompt(),  llm: new VercelAIProvider(),
+  name: "Supervisor",
+  purpose: "To coordinate and delegate tasks to specialized sub-agents based on user requests, ensuring efficient and accurate completion of complex workflows.",
+  description: "Master orchestrator for complex multi-agent workflows with structured reasoning",
+  instructions: supervisorPrompt(),
+  llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
-  tools: [reasoningToolkit], // Add reasoning tools for structured thinking
+  tools: [reasoningToolkit, /* delegate_task is automatically added when subAgents are defined */],
   subAgents: [
     mathAgent,
-    fileAgent, 
-    webAgent,    devAgent,
+    fileAgent,
+    webAgent,
+    devAgent,
     dataAgent,
     commsAgent,
     memoryAgent
-  ],  
-  hooks: createSupervisorHooks("Boss", {
-    verbose: false, // Set to true for debugging
+  ],
+  hooks: createSupervisorHooks("Supervisor", {
+    verbose: true, // Set to true for debugging delegation
     performance: true,
     analytics: true,
-    logPrefix: "[VoltAgent:Boss]"
-  }),  // Memory for maintaining conversation context and task coordination
+    logPrefix: "[VoltAgent:Supervisor]"
+  }),
   memory: memoryStorage,
-  // Retriever for accessing knowledge across all domains - using memory retriever for working functionality
   retriever: new MemoryRetriever(memoryStorage, {
     toolName: "search_conversation_history",
     toolDescription: "Search across conversation history and stored knowledge"

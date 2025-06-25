@@ -4,19 +4,33 @@ import { createDataStreamResponse } from "ai";
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const { messages, agentName: requestedAgentName } = await req.json();
 
-    // Get the last message
     const lastMessage = messages[messages.length - 1];
 
-    // Integrate VoltAgent fullStream with createDataStreamResponse
+    const agentToUseName = requestedAgentName || 'supervisor';
+
+    let selectedAgentInstance;
+
+    // Dynamically import and get the agent instance
+    if (agentToUseName === 'supervisor') {
+      selectedAgentInstance = supervisorAgent; // supervisorAgent is directly imported
+    } else if (subAgents && typeof (subAgents as any)[agentToUseName] === 'function') {
+      // If it's a sub-agent and it's a function that returns a promise, await it
+      selectedAgentInstance = await (subAgents as any)[agentToUseName]();
+    } else {
+      throw new Error(`Agent '${agentToUseName}' not found or not correctly configured.`);
+    }
+
+    if (!selectedAgentInstance || typeof selectedAgentInstance.streamText !== 'function') {
+        throw new Error(`Agent '${agentToUseName}' not found or does not support streaming text.`);
+    }
+
     return createDataStreamResponse({
       async execute(dataStream) {
         try {
-          const result = await supervisorAgent.streamText(lastMessage.content);
-
-          // biome-ignore lint/style/noNonNullAssertion: always exists
-          mergeIntoDataStream(dataStream, result.fullStream!);
+          const result = await selectedAgentInstance.streamText(lastMessage.content);
+          mergeIntoDataStream(dataStream, result.fullStream!); // Fixed syntax: removed 'n'
         } catch (error) {
           console.error("Stream processing error:", error);
           dataStream.writeMessageAnnotation({

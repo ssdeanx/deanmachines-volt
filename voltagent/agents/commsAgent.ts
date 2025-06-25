@@ -48,6 +48,7 @@ const commsReasoningTools = createReasoningTools({
  */
 export const commsAgent = new Agent({
   name: "Communicator",
+  purpose: "To handle team communication, send notifications, and manage collaboration tasks.",
   description: "Specialized agent for team communication, notifications, and collaboration with structured reasoning",
   instructions: commsPrompt(),
   llm: new VercelAIProvider(),
@@ -65,13 +66,14 @@ export const commsAgent = new Agent({
       commsReasoningTools, // Add reasoning tools for communication analysis
       ...commTools
     ];
-  },  
+  },
   hooks: createSubAgentHooks("Communicator", "communication and collaboration", {
-    verbose: false, // Set to true for debugging communications
+    verbose: true, // Set to true for debugging communications
     performance: true,
     analytics: true,
     logPrefix: "[VoltAgent:Comms]"
-  }),// Memory for tracking communication history and contacts
+  }),
+  // Memory for tracking communication history and contacts
   memory: memoryStorage,
   // Retriever for accessing communication history and context
   retriever: new MemoryRetriever(memoryStorage, {

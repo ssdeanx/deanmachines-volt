@@ -22,11 +22,11 @@
     "@swagger-api/apidom-parser-adapter-openapi-json-2": "^1.0.0-beta.43",
     "@tailwindcss/postcss": "^4.1.10",
     "@voltagent/cli": "^0.1.9",
-    "@voltagent/core": "^0.1.42",
+    "@voltagent/core": "^0.1.44",
     "@voltagent/langfuse-exporter": "^0.1.4",
     "@voltagent/vercel-ai": "^0.1.13",
     "@voltagent/vercel-ai-exporter": "^0.1.5",
-    "@voltagent/vercel-ui": "^0.1.0",
+    "@voltagent/vercel-ui": "^0.1.1",
     "ai": "^4.3.16",
     "next": "15.3.4",
     "npm-check-updates": "^18.0.1",
@@ -41,7 +41,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "ts-node": "^10.9.2",
-    "tsx": "^4.19.2",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   },
   "overrides": {

@@ -338,12 +338,20 @@ export const createSupervisorHooks = (supervisorName: string, config: HookConfig
           console.log(`   SubAgent breakdown:`, subAgentResults.map((r: any) => `${r.agent}: ${r.success ? '✅' : '❌'}`).join(', '));
         }
       }
-    },    onHandoff: async (args: OnHandoffHookArgs) => {
-      const { agent } = args;
-      console.log(`👑🔄 ${logPrefix} [${supervisorName}] Delegating to ${agent.name}`);
+    },    onToolStart: async ({ tool, context }: OnToolStartHookArgs) => {
+      // Only increment for the specific delegation tool
+      if (tool.name === 'delegate_task') {
+        const delegationCount = context.userContext.get("delegationCount") || 0;
+        context.userContext.set("delegationCount", delegationCount + 1);
+        console.log(`👑🔄 ${logPrefix} [${supervisorName}] Delegating task (delegation #${delegationCount + 1})`);
+      }
+    },
+
+    onHandoff: async ({ agent }: OnHandoffHookArgs) => {
+      console.log(`👑🤝 ${logPrefix} [${supervisorName}] Handing off to ${agent.name}`);
       
       if (verbose) {
-        console.log(`   Delegation: ${supervisorName} → ${agent.name}`);
+        console.log(`   Handoff: ${supervisorName} → ${agent.name}`);
       }
     },
   });

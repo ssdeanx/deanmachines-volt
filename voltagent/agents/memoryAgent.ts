@@ -48,8 +48,10 @@ const memoryReasoningTools = createReasoningTools({
  */
 export const memoryAgent = new Agent({
   name: "KnowledgeKeeper",
+  purpose: "To store, retrieve, and manage information and knowledge.",
   description: "Specialized agent for memory, knowledge management, and information processing with structured reasoning",
-  instructions: knowledgePrompt(),  llm: new VercelAIProvider(),
+  instructions: knowledgePrompt(),
+  llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: async () => {
     return [
@@ -59,7 +61,7 @@ export const memoryAgent = new Agent({
     ];
   },  
   hooks: createSubAgentHooks("KnowledgeKeeper", "memory and knowledge management", {
-    verbose: false, // Set to true for debugging memory operations
+    verbose: true, // Set to true for debugging memory operations
     performance: true,
     analytics: true,
     logPrefix: "[VoltAgent:Memory]"

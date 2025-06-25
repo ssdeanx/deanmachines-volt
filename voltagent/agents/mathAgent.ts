@@ -32,9 +32,9 @@ Always use 'think' to break down complex mathematical problems into steps. Use '
 // Create reasoning tools for mathematical analysis
 const mathReasoningTools = createReasoningTools({
   think: true,
-  analyze: true,
-  addInstructions: true,
-  addFewShot: true
+  analyze: false,
+  addInstructions: false,
+  addFewShot: false
 });
 
 /**
@@ -44,13 +44,14 @@ const mathReasoningTools = createReasoningTools({
  */
 export const mathAgent = new Agent({
   name: "MathAssistant",
-  description: "A helpful assistant that can answer questions and perform calculations using advanced mathematical reasoning with structured thinking",
+  purpose: "To perform mathematical calculations and solve complex math problems.",
+  description: "Specialized agent for mathematical calculations and problem-solving with structured reasoning.",
   instructions: mathPrompt(),
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [mathReasoningTools, calculatorTool],
   hooks: createSubAgentHooks("MathAssistant", "mathematical calculations", {
-    verbose: false, // Set to true for debugging mathematical operations
+    verbose: true, // Set to true for debugging math operations
     performance: true,
     analytics: true,
     logPrefix: "[VoltAgent:Math]"

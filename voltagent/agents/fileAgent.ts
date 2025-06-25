@@ -4,7 +4,7 @@ import { google } from "../config/googleProvider";
 import { mcpToolsService } from "../services/mcp";
 import { createSubAgentHooks } from "../services/hooks";
 import { memoryStorage } from "../services/memory";
-import { DocumentRetriever } from "../services/retriever";
+import { MemoryRetriever } from "../services/retriever";
 
 // Create dynamic prompt for file management tasks
 const filePrompt = createPrompt({
@@ -46,6 +46,7 @@ const fileReasoningTools = createReasoningTools({
  */
 export const fileAgent = new Agent({
   name: "FileManager",
+  purpose: "To manage files and directories, including reading, writing, and organizing data across local and cloud storage.",
   description: "Specialized agent for file operations, cloud storage, and document management with structured reasoning",
   instructions: filePrompt(),
   llm: new VercelAIProvider(),
@@ -57,17 +58,17 @@ export const fileAgent = new Agent({
     ];
   },  
   hooks: createSubAgentHooks("FileManager", "file operations and storage", {
-    verbose: false, // Set to true for debugging file operations
+    verbose: true, // Set to true for debugging file operations
     performance: true,
     analytics: true,
     logPrefix: "[VoltAgent:File]"
   }),
   // Memory for tracking file operations and states
   memory: memoryStorage,
-  // Retriever for searching through file contents and metadata
-  retriever: new DocumentRetriever('filesystem', undefined, {
-    toolName: "search_files",
-    toolDescription: "Search through file contents and metadata"
+  // Retriever for accessing memory and conversation history
+  retriever: new MemoryRetriever(memoryStorage, {
+    toolName: "search_file_history",
+    toolDescription: "Search through memory and conversation history related to file operations"
   }),
   thinkingConfig: {
     thinkingBudget: 0,

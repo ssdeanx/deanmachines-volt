@@ -48,6 +48,7 @@ const dataReasoningTools = createReasoningTools({
  */
 export const dataAgent = new Agent({
   name: "DataManager",
+  purpose: "To manage and analyze data from various sources, including databases and files.",
   description: "Specialized agent for database operations, data analysis, and data processing with structured reasoning",
   instructions: dataPrompt(),
   llm: new VercelAIProvider(),
@@ -59,11 +60,12 @@ export const dataAgent = new Agent({
     ];
   },  
   hooks: createSubAgentHooks("DataManager", "database and data operations", {
-    verbose: false, // Set to true for debugging data operations
+    verbose: true, // Set to true for debugging data operations
     performance: true,
     analytics: true,
     logPrefix: "[VoltAgent:Data]"
-  }),// Memory for tracking data operations and query history
+  }),
+  // Memory for tracking data operations and query history
   memory: memoryStorage,
   // Retriever for accessing data analysis history and context
   retriever: new MemoryRetriever(memoryStorage, {

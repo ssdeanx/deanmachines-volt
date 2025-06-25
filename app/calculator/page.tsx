@@ -1,7 +1,7 @@
-import { Navbar } from "./components/navbar";
-import { SupervisorChat } from "./components/supervisor-chat";
+import { Navbar } from "../components/navbar";
+import { CalculatorChat } from "../components/calculator-chat";
 
-export default function Home() {
+export default function CalculatorPage() {
   return (
     <div className="relative min-h-screen bg-[#1b1b1b] flex flex-col p-4 overflow-hidden">
       {/* Dot pattern background */}
@@ -19,11 +19,11 @@ export default function Home() {
 
       <main className="relative w-full max-w-2xl mx-auto mt-6 z-10">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-[#00d992] mb-1">VoltAgent Supervisor</h1>
-          <p className="text-gray-400">AI-powered task coordination across multiple agents</p>
+          <h1 className="text-3xl font-bold text-[#00d992] mb-1">VoltAgent Calculator</h1>
+          <p className="text-gray-400">AI-powered calculations made simple</p>
         </div>
 
-        <SupervisorChat />
+        <CalculatorChat />
 
         <div className="mt-8 text-center text-sm text-gray-500">
           <p>Built with Next.js and VoltAgent</p>

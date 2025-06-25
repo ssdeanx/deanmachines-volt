@@ -4,7 +4,7 @@ import { google } from "../config/googleProvider";
 import { mcpToolsService } from "../services/mcp";
 import { createSubAgentHooks } from "../services/hooks";
 import { memoryStorage } from "../services/memory";
-import { DocumentRetriever } from "../services/retriever";
+import { MemoryRetriever } from "../services/retriever";
 
 // Create dynamic prompt for development tasks
 const developmentPrompt = createPrompt({
@@ -47,27 +47,30 @@ const devReasoningTools = createReasoningTools({
  */
 export const devAgent = new Agent({
   name: "Developer",
+  purpose: "To handle software development tasks, including version control, DevOps, and code management.",
   description: "Specialized agent for software development, version control, and DevOps operations with structured problem-solving",
-  instructions: developmentPrompt(),  llm: new VercelAIProvider(),
+  instructions: developmentPrompt(),
+  llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: async () => {
     return [
       devReasoningTools, // Add reasoning tools for development analysis
       ...mcpToolsService.getToolsForAgent('dev')
     ];
-  },  
+  },
+
   hooks: createSubAgentHooks("Developer", "development and DevOps", {
-    verbose: false, // Set to true for debugging development operations
+    verbose: true, // Set to true for debugging development operations
     performance: true,
     analytics: true,
     logPrefix: "[VoltAgent:Dev]"
   }),
   // Memory for tracking development context and project state
   memory: memoryStorage,
-  // Retriever for accessing code documentation and project knowledge
-  retriever: new DocumentRetriever('filesystem', undefined, {
-    toolName: "search_code_docs",
-    toolDescription: "Search through code documentation and project files"
+  // Retriever for accessing memory and conversation history related to development tasks
+  retriever: new MemoryRetriever(memoryStorage, {
+    toolName: "search_dev_history",
+    toolDescription: "Search through memory and conversation history related to development tasks"
   }),
   thinkingConfig: {
     thinkingBudget: 0,
