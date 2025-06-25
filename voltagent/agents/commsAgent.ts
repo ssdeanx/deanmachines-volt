@@ -53,20 +53,15 @@ export const commsAgent = new Agent({
   instructions: commsPrompt(),
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
-  tools: async () => {
-    const allTools = await mcpToolsService.getToolsSafe();
-    // Get communication-related tools (Slack, etc.)
-    const commTools = allTools.filter(tool => 
+  tools: [
+    commsReasoningTools, // Add reasoning tools for communication analysis
+    ...mcpToolsService.getTools().filter(tool => 
       tool.name?.toLowerCase().includes('slack') ||
       tool.name?.toLowerCase().includes('message') ||
       tool.name?.toLowerCase().includes('notification') ||
       tool.name?.toLowerCase().includes('chat')
-    );
-    return [
-      commsReasoningTools, // Add reasoning tools for communication analysis
-      ...commTools
-    ];
-  },
+    )
+  ],
   hooks: createSubAgentHooks("Communicator", "communication and collaboration", {
     verbose: true, // Set to true for debugging communications
     performance: true,

@@ -1,5 +1,5 @@
 {
-  "name": "voltagent-example-with-nextjs",
+  "name": "deanmachines-volt",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,8 @@
     "dev:voltagent": "tsx  --env-file=.env voltagent/index.ts",
     "lint": "next lint",
     "start": "next start",
-    "volt": "volt"
+    "volt": "volt",
+    "husky": "husky"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.19",
@@ -21,6 +22,10 @@
     "@opentelemetry/sdk-trace-base": "^2.0.1",
     "@swagger-api/apidom-parser-adapter-openapi-json-2": "^1.0.0-beta.43",
     "@tailwindcss/postcss": "^4.1.10",
+    "@upstash/redis": "^1.35.0",
+    "@upstash/search": "^0.1.2",
+    "@upstash/semantic-cache": "^1.0.5",
+    "@upstash/vector": "^1.2.1",
     "@voltagent/cli": "^0.1.9",
     "@voltagent/core": "^0.1.44",
     "@voltagent/langfuse-exporter": "^0.1.4",
@@ -28,21 +33,43 @@
     "@voltagent/vercel-ai-exporter": "^0.1.5",
     "@voltagent/vercel-ui": "^0.1.1",
     "ai": "^4.3.16",
+    "cheerio": "^1.1.0",
+    "crawlee": "^3.13.8",
+    "fast-xml-parser": "^5.2.5",
+    "jose": "^6.0.11",
+    "js-yaml": "^4.1.0",
+    "jsinspect-plus": "^3.1.3",
+    "langfuse-vercel": "^3.37.5",
     "next": "15.3.4",
     "npm-check-updates": "^18.0.1",
+    "papaparse": "^5.5.3",
     "postcss": "^8.5.6",
+    "quick-lru": "^7.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "remark": "^15.0.1",
     "tailwindcss": "^4.1.10",
+    "wikibase-sdk": "^10.2.3",
+    "yaml": "^2.8.0",
     "zod": "3.25.67"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
     "@types/node": "^20.19.1",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@types/papaparse": "^5.3.16",
+    "@types/js-yaml": "^4.0.9",
+    "@typescript-eslint/eslint-plugin": "^8.35.0",
+    "@typescript-eslint/parser": "^8.35.0",
+    "eslint": "^9.29.0",
+    "eslint-config-next": "15.3.4",
+    "husky": "^9.1.7",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.3"
+    "tw-animate-css": "^1.3.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.35.0"
   },
   "overrides": {
     "zod": "3.25.67"

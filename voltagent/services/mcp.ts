@@ -18,19 +18,13 @@ function createMCPServers() {
   servers.filesystem = {
     type: "stdio",
     command: "npx",
-    args: ["-y", "@modelcontextprotocol/server-filesystem", process.cwd(), "c:/Users/dm/Documents"],
+    args: ["-y", "@modelcontextprotocol/server-filesystem", process.cwd(), "c:/Users/dm/Documents/deanmachines-volt"],
   };
 
   servers.memory = {
     type: "stdio",
     command: "npx",
     args: ["-y", "@modelcontextprotocol/server-memory"],
-  };
-
-  servers.sqlite = {
-    type: "stdio",
-    command: "npx",
-    args: ["-y", "@modelcontextprotocol/server-sqlite", "./data/app.db"],
   };
 
   servers.browser = {
@@ -42,7 +36,7 @@ function createMCPServers() {
   servers.git = {
     type: "stdio",
     command: "uvx",
-    args: ["mcp-server-git", "--repository", process.cwd()],
+    args: ["mcp-server-git", "--repository", process.cwd(), "c:/Users/dm/Documents/deanmachines-volt"],
   };
 
   servers.docker = {
@@ -55,6 +49,35 @@ function createMCPServers() {
     type: "stdio",
     command: "npx",
     args: ["-y", "@modelcontextprotocol/server-everything"],
+  };
+
+  servers.voltagent = {
+    type: "stdio",
+    command: "npx",
+    args: ["-y", "@voltagent/docs-mcp"],
+    disabled: false
+  };
+
+  servers.vibe_check = {
+    timeout: 60000,
+    type: "stdio",
+    command: "node",
+    args: [
+      "C:\\Users\\dm\\vibe-check-mcp-server\\build\\index.js"
+      ],
+    env: {
+      GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    },
+    disabled: false
+  };
+
+  servers.markdownify_mcp = {
+    type: "stdio",
+    command: "node",
+    args: [
+      "C:\\Users\\dm\\Documents\\cline\\mcp\\markdownify-mcp\\dist\\index.js"
+    ],
+    disabled: false
   };
 
   servers.sequential_thinking = {
@@ -113,18 +136,18 @@ function createMCPServers() {
   }
 
   // PostgreSQL - only if connection string is available
-  if (process.env.DATABASE_URL || process.env.POSTGRES_CONNECTION_STRING) {
+  if (process.env.SUPABASE_URI) {
     servers.postgres = {
       type: "stdio",
       command: "npx", 
       args: ["-y", "@modelcontextprotocol/server-postgres"],
       env: {
-        POSTGRES_CONNECTION_STRING: process.env.DATABASE_URL || process.env.POSTGRES_CONNECTION_STRING,
+        POSTGRES_CONNECTION_STRING: process.env.SUPABASE_URI,
       },
     };
     console.log("✅ PostgreSQL MCP server enabled");
   } else {
-    console.log("⚠️  PostgreSQL MCP server disabled (DATABASE_URL not found)");
+    console.log("⚠️  PostgreSQL MCP server disabled (SUPABASE_URI not found)");
   }
 
   // Google Drive - only if credentials are available
@@ -431,3 +454,6 @@ export class MCPToolsService {
 
 // Export singleton instance
 export const mcpToolsService = new MCPToolsService();
+
+// Preload MCP tools on startup
+mcpToolsService.initializeTools().catch(error => console.error("Error initializing MCP tools:", error));

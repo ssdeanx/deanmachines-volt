@@ -52,12 +52,10 @@ export const webAgent = new Agent({
   instructions: researchPrompt(),
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
-  tools: async () => {
-    return [
-      researchReasoningTools, // Add reasoning tools for research analysis
-      ...mcpToolsService.getToolsForAgent('research')
-    ];
-  },  
+  tools: [
+    researchReasoningTools, // Add reasoning tools for research analysis
+    ...mcpToolsService.getToolsForAgent('research')
+  ],  
   hooks: createSubAgentHooks("WebResearcher", "web research and browsing", {
     verbose: true, // Set to true for debugging web operations
     performance: true,

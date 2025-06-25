@@ -53,13 +53,11 @@ export const memoryAgent = new Agent({
   instructions: knowledgePrompt(),
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
-  tools: async () => {
-    return [
+  tools: [
       memoryReasoningTools, // Add reasoning tools for knowledge analysis
       ...mcpToolsService.getMemoryTools(),
       ...mcpToolsService.getThinkingTools()
-    ];
-  },  
+    ],  
   hooks: createSubAgentHooks("KnowledgeKeeper", "memory and knowledge management", {
     verbose: true, // Set to true for debugging memory operations
     performance: true,

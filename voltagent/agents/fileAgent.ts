@@ -51,12 +51,10 @@ export const fileAgent = new Agent({
   instructions: filePrompt(),
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
-  tools: async () => {
-    return [
+  tools: [
       fileReasoningTools, // Add reasoning tools for file analysis
       ...mcpToolsService.getToolsForAgent('file')
-    ];
-  },  
+    ],  
   hooks: createSubAgentHooks("FileManager", "file operations and storage", {
     verbose: true, // Set to true for debugging file operations
     performance: true,

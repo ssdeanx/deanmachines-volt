@@ -53,12 +53,10 @@ export const dataAgent = new Agent({
   instructions: dataPrompt(),
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
-  tools: async () => {
-    return [
-      dataReasoningTools, // Add reasoning tools for data analysis
-      ...mcpToolsService.getToolsForAgent('data')
-    ];
-  },  
+  tools: [
+    dataReasoningTools, // Add reasoning tools for data analysis
+    ...mcpToolsService.getToolsForAgent('data')
+],  
   hooks: createSubAgentHooks("DataManager", "database and data operations", {
     verbose: true, // Set to true for debugging data operations
     performance: true,

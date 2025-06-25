@@ -52,12 +52,10 @@ export const devAgent = new Agent({
   instructions: developmentPrompt(),
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
-  tools: async () => {
-    return [
-      devReasoningTools, // Add reasoning tools for development analysis
-      ...mcpToolsService.getToolsForAgent('dev')
-    ];
-  },
+  tools: [
+    devReasoningTools, // Add reasoning tools for development analysis
+    ...mcpToolsService.getToolsForAgent('dev')
+  ],
 
   hooks: createSubAgentHooks("Developer", "development and DevOps", {
     verbose: true, // Set to true for debugging development operations
