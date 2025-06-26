@@ -6,7 +6,7 @@
 /**
  * Simple user context implementation for maintaining state across agent interactions
  */
-class UserContextMap extends Map<string, any> {
+class UserContextMap<T = unknown> extends Map<string, T> {
   constructor() {
     super();
   }
@@ -16,7 +16,7 @@ class UserContextMap extends Map<string, any> {
  * User Context for maintaining state across agent interactions
  * This context flows through the agent lifecycle and between agents
  */
-export const userContext = new UserContextMap();
+export const userContext = new UserContextMap<unknown>();
 
 /**
  * Context Service for managing user sessions and cross-agent data
@@ -27,15 +27,15 @@ export class ContextService {
   /**
    * Set a value in the user context
    */
-  set(key: string, value: any) {
+  set<T = unknown>(key: string, value: T): void {
     this.context.set(key, value);
   }
 
   /**
    * Get a value from the user context
    */
-  get(key: string) {
-    return this.context.get(key);
+  get<T = unknown>(key: string): T | undefined {
+    return this.context.get(key) as T | undefined;
   }
 
   /**
@@ -61,9 +61,9 @@ export class ContextService {
   /**
    * Get all context data as an object
    */
-  getAll(): Record<string, any> {
-    const data: Record<string, any> = {};
-    this.context.forEach((value: any, key: string) => {
+  getAll(): Record<string, unknown> {
+    const data: Record<string, unknown> = {};
+    this.context.forEach((value: unknown, key: string) => {
       data[key] = value;
     });
     return data;
@@ -72,7 +72,7 @@ export class ContextService {
   /**
    * Initialize session context with user data
    */
-  initializeSession(userId: string, sessionId: string, metadata?: Record<string, any>) {
+  initializeSession(userId: string, sessionId: string, metadata?: Record<string, unknown>) {
     this.set("userId", userId);
     this.set("sessionId", sessionId);
     this.set("sessionStartTime", new Date().toISOString());
@@ -113,8 +113,18 @@ export class ContextService {
    * Track agent handoffs and delegation flow
    */
   trackHandoff(fromAgent: string, toAgent: string, reason?: string) {
-    const handoffs = this.get("handoffs") || [];
-    handoffs.push({
+    type HandoffEntry = {
+      from: string;
+      to: string;
+      reason?: string;
+      timestamp: string;
+    };
+    let handoffs = this.get("handoffs") as HandoffEntry[] | undefined;
+    if (!Array.isArray(handoffs)) {
+      handoffs = [];
+    }
+    // Ensure handoffs is typed as an array before push
+    (handoffs as HandoffEntry[]).push({
       from: fromAgent,
       to: toAgent,
       reason,
@@ -126,8 +136,8 @@ export class ContextService {
   /**
    * Store operation results for cross-agent access
    */
-  storeResult(operationId: string, result: any, agentName: string) {
-    const results = this.get("operationResults") || {};
+  storeResult(operationId: string, result: unknown, agentName: string) {
+    const results: Record<string, unknown> = this.get("operationResults") || {};
     results[operationId] = {
       result,
       agentName,
@@ -140,28 +150,28 @@ export class ContextService {
    * Get result from a previous operation
    */
   getResult(operationId: string) {
-    const results = this.get("operationResults") || {};
+    const results: Record<string, unknown> = this.get("operationResults") || {};
     return results[operationId];
   }
 
   /**
    * Set user preferences
    */
-  setPreferences(preferences: Record<string, any>) {
+  setPreferences(preferences: Record<string, unknown>) {
     this.set("userPreferences", preferences);
   }
 
   /**
    * Get user preferences
    */
-  getPreferences(): Record<string, any> {
+  getPreferences(): Record<string, unknown> {
     return this.get("userPreferences") || {};
   }
 
   /**
    * Update a specific preference
    */
-  updatePreference(key: string, value: any) {
+  updatePreference(key: string, value: unknown) {
     const prefs = this.getPreferences();
     prefs[key] = value;
     this.setPreferences(prefs);
@@ -190,7 +200,12 @@ export const contextHelpers = {
    * Track conversation flow
    */
   trackConversation: (conversationId: string, message: string, role: 'user' | 'assistant') => {
-    const conversations = contextService.get("conversations") || {};
+    type ConversationEntry = {
+      message: string;
+      role: 'user' | 'assistant';
+      timestamp: string;
+    };
+    const conversations = contextService.get("conversations") as Record<string, ConversationEntry[]> || {};
     if (!conversations[conversationId]) {
       conversations[conversationId] = [];
     }
@@ -208,21 +223,30 @@ export const contextHelpers = {
    * Get conversation history
    */
   getConversation: (conversationId: string) => {
-    const conversations = contextService.get("conversations") || {};
+    type ConversationEntry = {
+      message: string;
+      role: 'user' | 'assistant';
+      timestamp: string;
+    };
+    const conversations = contextService.get("conversations") as Record<string, ConversationEntry[]> || {};
     return conversations[conversationId] || [];
   },
 
   /**
    * Store file or resource references
    */
-  storeReference: (type: string, reference: any) => {
-    const refs = contextService.get("references") || {};
+  storeReference: (type: string, reference: unknown) => {
+    type ReferenceEntry = {
+      [key: string]: unknown;
+      timestamp: string;
+    };
+    const refs = contextService.get("references") as Record<string, ReferenceEntry[]> || {};
     if (!refs[type]) {
       refs[type] = [];
     }
     
     refs[type].push({
-      ...reference,
+      ...(reference as Record<string, unknown>),
       timestamp: new Date().toISOString()
     });
     
@@ -233,7 +257,11 @@ export const contextHelpers = {
    * Get references by type
    */
   getReferences: (type: string) => {
-    const refs = contextService.get("references") || {};
+    type ReferenceEntry = {
+      [key: string]: unknown;
+      timestamp: string;
+    };
+    const refs = contextService.get("references") as Record<string, ReferenceEntry[]> || {};
     return refs[type] || [];
   }
 };

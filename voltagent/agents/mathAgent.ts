@@ -1,33 +1,22 @@
-import { Agent, createPrompt, createReasoningTools } from "@voltagent/core";
+import { Agent, createReasoningTools } from "@voltagent/core";
 import { VercelAIProvider } from "@voltagent/vercel-ai";
 import { google } from "../config/googleProvider";
 import { calculatorTool } from "../tools";
 import { createSubAgentHooks } from "../services/hooks";
 import { memoryStorage } from "../services/memory";
 
-// Create dynamic prompt for mathematical tasks
-const mathPrompt = createPrompt({
-  template: `You are a mathematical specialist. You can:
+/**
+ * Static system prompt for math agent to avoid runtime modifications.
+ * This prompt is defined statically to ensure system messages are set only at the beginning of the conversation.
+ */
+const mathPrompt = `You are a mathematical specialist. You can:
 - Perform complex calculations and mathematical operations
 - Solve algebraic, geometric, and calculus problems
 - Analyze mathematical patterns and relationships
 - Provide step-by-step mathematical explanations
 - Handle statistical and financial calculations
 
-Problem Type: {{problem_type}}
-Complexity Level: {{complexity}}
-Approach: {{approach}}
-
-{{math_strategy}}
-
-Always use 'think' to break down complex mathematical problems into steps. Use 'analyze' to verify calculations and ensure accuracy.`,
-  variables: {
-    problem_type: "general mathematics",
-    complexity: "moderate",
-    approach: "step-by-step",
-    math_strategy: "Show work clearly and verify results. Use the calculator tool for precise computations."
-  }
-});
+Always use 'think' to break down complex mathematical problems into steps.`;
 
 // Create reasoning tools for mathematical analysis
 const mathReasoningTools = createReasoningTools({
@@ -46,7 +35,7 @@ export const mathAgent = new Agent({
   name: "MathAssistant",
   purpose: "To perform mathematical calculations and solve complex math problems.",
   description: "Specialized agent for mathematical calculations and problem-solving with structured reasoning.",
-  instructions: mathPrompt(),
+  instructions: mathPrompt,
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [mathReasoningTools, calculatorTool],

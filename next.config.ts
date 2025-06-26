@@ -22,7 +22,8 @@ const nextConfig: NextConfig = {
     "js-yaml",
     "jsonschema",
     "simple-git",
-    "octokit"
+    "octokit",
+    "memfs"
   ],
 };
 

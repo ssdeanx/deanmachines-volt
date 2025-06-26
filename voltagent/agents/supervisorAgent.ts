@@ -1,4 +1,4 @@
-import { Agent, createPrompt, createReasoningTools } from "@voltagent/core";
+import { Agent, createReasoningTools } from "@voltagent/core";
 import { VercelAIProvider } from "@voltagent/vercel-ai";
 import { google } from "../config/googleProvider";
 import { mathAgent } from "./mathAgent";
@@ -12,9 +12,11 @@ import { createSupervisorHooks } from "../services/hooks";
 import { memoryStorage } from "../services/memory";
 import { MemoryRetriever } from "../services/retriever";
 
-// Create dynamic prompt template for supervisor instructions
-const supervisorPrompt = createPrompt({
-  template: `You are the main supervisor coordinating a team of specialized agents:
+/**
+ * Static system prompt for supervisor agent to avoid runtime modifications.
+ * This prompt is defined statically to ensure system messages are set only at the beginning of the conversation.
+ */
+const supervisorPrompt = `You are the main supervisor coordinating a team of specialized agents:
 
 🧮 **MathAssistant** - Mathematical calculations and problem-solving
 📁 **FileManager** - File operations, cloud storage, document management  
@@ -24,18 +26,9 @@ const supervisorPrompt = createPrompt({
 💬 **Communicator** - Slack messaging, team communication, notifications
 🧠 **KnowledgeKeeper** - Memory storage, information retrieval, knowledge management
 
-Current Context: {{context}}
-Task Complexity: {{complexity}}
+Delegate tasks to the most appropriate specialist based on the user's request. You can use multiple agents for complex tasks that span different domains.
 
-{{delegation_strategy}}
-
-Always use the 'think' tool first to analyze requests and plan delegation. For complex multi-step tasks, use 'analyze' to evaluate intermediate results before proceeding.`,
-  variables: {
-    context: "No specific context",
-    complexity: "standard",
-    delegation_strategy: "Delegate tasks to the most appropriate specialist based on the user's request. You can use multiple agents for complex tasks that span different domains."
-  }
-});
+Always use the 'think' tool first to analyze requests and plan delegation. For complex multi-step tasks, use 'analyze' to evaluate intermediate results before proceeding.`;
 
 // Create reasoning tools for structured thinking
 // Create reasoning tools for structured thinking
@@ -55,7 +48,7 @@ export const supervisorAgent = new Agent({
   name: "Supervisor",
   purpose: "To coordinate and delegate tasks to specialized sub-agents based on user requests, ensuring efficient and accurate completion of complex workflows.",
   description: "Master orchestrator for complex multi-agent workflows with structured reasoning",
-  instructions: supervisorPrompt(),
+  instructions: supervisorPrompt,
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [reasoningToolkit, /* delegate_task is automatically added when subAgents are defined */],

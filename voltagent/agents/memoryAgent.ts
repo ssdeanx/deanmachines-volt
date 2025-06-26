@@ -1,14 +1,15 @@
-import { Agent, createPrompt, createReasoningTools } from "@voltagent/core";
+import { Agent, createReasoningTools } from "@voltagent/core";
 import { VercelAIProvider } from "@voltagent/vercel-ai";
 import { google } from "../config/googleProvider";
 import { mcpToolsService } from "../services/mcp";
 import { createSubAgentHooks } from "../services/hooks";
 import { memoryStorage } from "../services/memory";
-import { MemoryRetriever } from "../services/retriever";
 
-// Create dynamic prompt for knowledge management
-const knowledgePrompt = createPrompt({
-  template: `You are a knowledge management and memory specialist. You can:
+/**
+ * Static system prompt for memory agent to avoid runtime modifications.
+ * This prompt is defined statically to ensure system messages are set only at the beginning of the conversation.
+ */
+const knowledgePrompt = `You are a knowledge management and memory specialist. You can:
 - Store and retrieve information using memory systems
 - Organize knowledge into searchable formats
 - Perform sequential thinking and reasoning tasks
@@ -18,20 +19,7 @@ const knowledgePrompt = createPrompt({
 - Summarize and extract key insights from information
 - Help with decision-making through structured analysis
 
-Current Context: {{context}}
-Knowledge Domain: {{domain}}
-Task Type: {{task_type}}
-
-{{analysis_strategy}}
-
-Always use 'think' to analyze information requests before proceeding. Use 'analyze' to evaluate retrieved knowledge and determine if additional context is needed.`,
-  variables: {
-    context: "General knowledge management",
-    domain: "multi-domain",
-    task_type: "information processing",
-    analysis_strategy: "Focus on accuracy and helpful organization of information. Cross-reference multiple sources when available."
-  }
-});
+Always use 'think' to analyze information requests before proceeding. Use 'analyze' to evaluate retrieved knowledge and determine if additional context is needed.`;
 
 // Create reasoning tools for knowledge analysis
 const memoryReasoningTools = createReasoningTools({
@@ -50,7 +38,7 @@ export const memoryAgent = new Agent({
   name: "KnowledgeKeeper",
   purpose: "To store, retrieve, and manage information and knowledge.",
   description: "Specialized agent for memory, knowledge management, and information processing with structured reasoning",
-  instructions: knowledgePrompt(),
+  instructions: knowledgePrompt,
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [

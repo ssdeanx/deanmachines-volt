@@ -1,14 +1,14 @@
-import { Agent, createPrompt, createReasoningTools } from "@voltagent/core";
+import { Agent, createReasoningTools } from "@voltagent/core";
 import { VercelAIProvider } from "@voltagent/vercel-ai";
 import { google } from "../config/googleProvider";
-import { mcpToolsService } from "../services/mcp";
 import { createSubAgentHooks } from "../services/hooks";
 import { memoryStorage } from "../services/memory";
-import { MemoryRetriever } from "../services/retriever";
 
-// Create dynamic prompt for communication tasks
-const commsPrompt = createPrompt({
-  template: `You are a communication and collaboration specialist. You can:
+/**
+ * Static system prompt for communication agent to avoid runtime modifications.
+ * This prompt is defined statically to ensure system messages are set only at the beginning of the conversation.
+ */
+const commsPrompt = `You are a communication and collaboration specialist. You can:
 - Send messages and notifications via Slack
 - Manage team communications and updates
 - Schedule and coordinate meetings and events
@@ -18,20 +18,7 @@ const commsPrompt = createPrompt({
 - Create and manage communication workflows
 - Integrate with team productivity tools
 
-Communication Type: {{comm_type}}
-Urgency Level: {{urgency}}
-Audience: {{audience}}
-
-{{communication_strategy}}
-
-Always use 'think' to plan communications before sending them. Use 'analyze' to evaluate message effectiveness and team responses. Always be professional and considerate in communications.`,
-  variables: {
-    comm_type: "team collaboration",
-    urgency: "standard",
-    audience: "team members",
-    communication_strategy: "Focus on clear, professional communication. Consider timing and audience appropriateness."
-  }
-});
+Always use 'think' to plan communications before sending them. Use 'analyze' to evaluate message effectiveness and team responses. Always be professional and considerate in communications.`;
 
 // Create reasoning tools for communication analysis
 const commsReasoningTools = createReasoningTools({
@@ -50,7 +37,7 @@ export const commsAgent = new Agent({
   name: "Communicator",
   purpose: "To handle team communication, send notifications, and manage collaboration tasks.",
   description: "Specialized agent for team communication, notifications, and collaboration with structured reasoning",
-  instructions: commsPrompt(),
+  instructions: commsPrompt,
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [

@@ -1,14 +1,15 @@
-import { Agent, createPrompt, createReasoningTools } from "@voltagent/core";
+import { Agent, createReasoningTools } from "@voltagent/core";
 import { VercelAIProvider } from "@voltagent/vercel-ai";
 import { google } from "../config/googleProvider";
 import { mcpToolsService } from "../services/mcp";
 import { createSubAgentHooks } from "../services/hooks";
 import { memoryStorage } from "../services/memory";
-import { MemoryRetriever } from "../services/retriever";
 
-// Create dynamic prompt for development tasks
-const developmentPrompt = createPrompt({
-  template: `You are a software development specialist. You can:
+/**
+ * Static system prompt for development agent to avoid runtime modifications.
+ * This prompt is defined statically to ensure system messages are set only at the beginning of the conversation.
+ */
+const developmentPrompt = `You are a software development specialist. You can:
 - Manage Git repositories (commit, push, pull, merge, status, diff)
 - Work with GitHub and GitLab (repos, issues, PRs, projects)
 - Handle Docker containers and development environments
@@ -17,20 +18,7 @@ const developmentPrompt = createPrompt({
 - Debug issues and troubleshoot development problems
 - Set up and configure development tools
 
-Project Type: {{project_type}}
-Development Phase: {{phase}}
-Technology Stack: {{tech_stack}}
-
-{{development_strategy}}
-
-Always use 'think' to analyze requirements and plan development approach. Use 'analyze' to evaluate code quality and determine next steps. Follow best practices for version control and code quality.`,
-  variables: {
-    project_type: "web application",
-    phase: "development",
-    tech_stack: "modern web technologies",
-    development_strategy: "Write clean, maintainable code following industry standards. Test thoroughly and document appropriately."
-  }
-});
+Always use 'think' to analyze requirements and plan development approach. Use 'analyze' to evaluate code quality and determine next steps. Follow best practices for version control and code quality.`;
 
 // Create reasoning tools for development analysis
 const devReasoningTools = createReasoningTools({
@@ -49,7 +37,7 @@ export const devAgent = new Agent({
   name: "Developer",
   purpose: "To handle software development tasks, including version control, DevOps, and code management.",
   description: "Specialized agent for software development, version control, and DevOps operations with structured problem-solving",
-  instructions: developmentPrompt(),
+  instructions: developmentPrompt,
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [

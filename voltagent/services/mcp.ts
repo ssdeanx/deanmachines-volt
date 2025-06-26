@@ -1,3 +1,4 @@
+/* global console */
 /**
  * MCP (Model Context Protocol) Tools Service
  * Provides tools from MCP servers for VoltAgent
@@ -10,7 +11,17 @@ import { MCPConfiguration } from "@voltagent/core";
  * Only includes servers that have required credentials or work without them
  */
 function createMCPServers() {
-  const servers: Record<string, any> = {};
+  interface MCPServer {
+    name: string;
+    type: "stdio"; // <-- Fix: restrict to "stdio"
+    timeout?: number;
+    command: string;
+    args: string[];
+    env?: Record<string, string>; // <-- Fix: all values must be string
+    disabled?: boolean;
+  }
+
+  const servers: Record<string, MCPServer> = {};
 
   // ============================
   // ALWAYS AVAILABLE SERVERS (no auth required)
@@ -20,7 +31,14 @@ function createMCPServers() {
     type: "stdio",
     timeout: 60000,
     command: "npx",
-    args: ["-y", "@modelcontextprotocol/server-filesystem", process.cwd(), "c:/Users/dm/Documents/deanmachines-volt"],
+    args: [
+      "-y",
+      "@modelcontextprotocol/server-filesystem",
+      (typeof globalThis.process !== "undefined" && typeof globalThis.process.cwd === "function")
+        ? globalThis.process.cwd()
+        : ".",
+      "c:/Users/dm/Documents/deanmachines-volt"
+    ],
   };
 
   servers.memory = {
@@ -43,7 +61,14 @@ function createMCPServers() {
     type: "stdio",
     timeout: 60000,
     command: "uvx",
-    args: ["mcp-server-git", "--repository", process.cwd(), "c:/Users/dm/Documents/deanmachines-volt"],
+    args: [
+      "mcp-server-git",
+      "--repository",
+      (typeof globalThis.process !== "undefined" && typeof globalThis.process.cwd === "function")
+        ? globalThis.process.cwd()
+        : ".",
+      "c:/Users/dm/Documents/deanmachines-volt"
+    ],
   };
 
   servers.docker = {
@@ -80,7 +105,9 @@ function createMCPServers() {
       "C:\\Users\\dm\\vibe-check-mcp-server\\build\\index.js"
       ],
     env: {
-      GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+      GEMINI_API_KEY: (typeof globalThis.process !== "undefined" && globalThis.process.env?.GEMINI_API_KEY) 
+        ? globalThis.process.env.GEMINI_API_KEY ?? ""
+        : "",
     },
     disabled: false
   };
@@ -91,7 +118,7 @@ function createMCPServers() {
   // ============================
 
   // GitHub - only if token is available
-  if (process.env.GITHUB_TOKEN) {
+  if (typeof globalThis.process !== "undefined" && globalThis.process.env?.GITHUB_TOKEN) {
     servers.github = {
       name: "GitHub",
       timeout: 60000,
@@ -99,7 +126,7 @@ function createMCPServers() {
       command: "npx",
       args: ["-y", "@modelcontextprotocol/server-github"],
       env: {
-        GITHUB_PERSONAL_ACCESS_TOKEN: process.env.GITHUB_TOKEN,
+        GITHUB_PERSONAL_ACCESS_TOKEN: globalThis.process.env.GITHUB_TOKEN ?? "",
       },
     };
     console.log("✅ GitHub MCP server enabled");
@@ -107,10 +134,8 @@ function createMCPServers() {
     console.log("⚠️  GitHub MCP server disabled (GITHUB_TOKEN not found)");
   }
 
-  
-
   // Brave Search - only if API key is available
-  if (process.env.BRAVE_API_KEY) {
+  if (typeof globalThis.process !== "undefined" && globalThis.process.env?.BRAVE_API_KEY) {
     servers.web_search = {
       name: "Brave_Search",
       timeout: 60000,
@@ -118,7 +143,7 @@ function createMCPServers() {
       command: "npx",
       args: ["-y", "@modelcontextprotocol/server-brave-search"],
       env: {
-        BRAVE_API_KEY: process.env.BRAVE_API_KEY,
+        BRAVE_API_KEY: globalThis.process.env.BRAVE_API_KEY ?? "",
       },
     };
     console.log("✅ Brave Search MCP server enabled");
@@ -127,7 +152,7 @@ function createMCPServers() {
   }
 
   // PostgreSQL - only if connection string is available
-  if (process.env.SUPABASE_URI) {
+  if (typeof globalThis.process !== "undefined" && globalThis.process.env?.SUPABASE_URI) {
     servers.postgres = {
       name: "Supabase",
       timeout: 60000,
@@ -135,7 +160,7 @@ function createMCPServers() {
       command: "npx", 
       args: ["-y", "@modelcontextprotocol/server-postgres"],
       env: {
-        POSTGRES_CONNECTION_STRING: process.env.SUPABASE_URI,
+        POSTGRES_CONNECTION_STRING: globalThis.process.env.SUPABASE_URI ?? "",
       },
     };
     console.log("✅ Supabase MCP server enabled");
@@ -159,8 +184,8 @@ export const mcpConfig = new MCPConfiguration({
  */
 export class MCPToolsService {
   private config: MCPConfiguration;
-  private tools: any[] = [];
-  private toolsByCategory: Map<string, any[]> = new Map();
+  private tools: MCPTool[] = [];
+  private toolsByCategory: Map<string, MCPTool[]> = new Map();
   private initialized = false;
 
   constructor(config: MCPConfiguration = mcpConfig) {
@@ -169,7 +194,7 @@ export class MCPToolsService {
   /**
    * Initialize and categorize all MCP tools
    */
-  async initializeTools(): Promise<any[]> {
+  async initializeTools(): Promise<MCPTool[]> {
     if (this.initialized) {
       return this.tools;
     }
@@ -228,25 +253,25 @@ export class MCPToolsService {
   /**
    * Get all tools (safe - never throws)
    */
-  getTools(): any[] {
+  getTools(): MCPTool[] {
     return this.tools || [];
   }
 
   /**
    * Get tools by category (safe - never throws)
    */
-  getToolsByCategory(category: string): any[] {
+  getToolsByCategory(category: string): MCPTool[] {
     return this.toolsByCategory.get(category) || [];
   }
 
   /**
    * Safely get tools with fallback for uninitialized state
    */
-  async getToolsSafe(): Promise<any[]> {
+  async getToolsSafe(): Promise<MCPTool[]> {
     if (!this.initialized) {
       try {
         return await this.initializeTools();
-      } catch (error) {
+      } catch {
         console.warn("⚠️  Could not initialize MCP tools, returning empty array");
         return [];
       }
@@ -257,64 +282,68 @@ export class MCPToolsService {
   /**
    * Get filesystem tools
    */
-  getFilesystemTools(): any[] {
+  getFilesystemTools(): MCPTool[] {
     return this.getToolsByCategory('filesystem');
   }
 
   /**
    * Get memory tools
    */
-  getMemoryTools(): any[] {
+  getMemoryTools(): MCPTool[] {
     return this.getToolsByCategory('memory');
   }
 
   /**
    * Get web browsing tools
    */
-  getWebTools(): any[] {
+  getWebTools(): MCPTool[] {
     return this.getToolsByCategory('web');
   }
 
   /**
    * Get git/version control tools
    */
-  getGitTools(): any[] {
-    return [...this.getToolsByCategory('git'), ...this.getToolsByCategory('github'), ...this.getToolsByCategory('gitlab')];
+  getGitTools(): MCPTool[] {
+    return [
+      ...this.getToolsByCategory('git'),
+      ...this.getToolsByCategory('github'),
+      ...this.getToolsByCategory('gitlab')
+    ];
   }
 
   /**
    * Get database tools
    */
-  getDatabaseTools(): any[] {
+  getDatabaseTools(): MCPTool[] {
     return this.getToolsByCategory('database');
   }
 
   /**
    * Get cloud storage tools
    */
-  getCloudTools(): any[] {
+  getCloudTools(): MCPTool[] {
     return this.getToolsByCategory('cloud');
   }
 
   /**
    * Get development tools
    */
-  getDevelopmentTools(): any[] {
+  getDevelopmentTools(): MCPTool[] {
     return this.getToolsByCategory('development');
   }
 
   /**
    * Get thinking/reasoning tools
    */
-  getThinkingTools(): any[] {
+  getThinkingTools(): MCPTool[] {
     return this.getToolsByCategory('thinking');
   }
 
   /**
    * Get tools for a specific agent by providing an array of server names
    */
-  getToolsForAgent(serverNames: string[]): any[] {
-    let agentTools: any[] = [];
+  getToolsForAgent(serverNames: string[]): MCPTool[] {
+    let agentTools: MCPTool[] = [];
     for (const serverName of serverNames) {
       agentTools = [...agentTools, ...this.getToolsByCategory(serverName)];
     }
@@ -323,7 +352,7 @@ export class MCPToolsService {
   /**
    * Search tools by name or description (safe - never throws)
    */
-  searchTools(query: string): any[] {
+  searchTools(query: string): MCPTool[] {
     if (!this.tools || this.tools.length === 0) {
       return [];
     }
@@ -372,12 +401,20 @@ export class MCPToolsService {
   /**
    * Reinitialize tools (useful for config changes)
    */
-  async reinitialize(): Promise<any[]> {
+  async reinitialize(): Promise<MCPTool[]> {
     this.initialized = false;
     this.tools = [];
     this.toolsByCategory.clear();
     return this.initializeTools();
   }
+}
+
+
+// Define MCPTool interface for type safety
+interface MCPTool {
+  name: string;
+  description?: string;
+  // ...add other properties as needed...
 }
 
 
@@ -388,5 +425,7 @@ export const toolsets = mcpConfig.getToolsets();
 // Export singleton instance
 export const mcpToolsService = new MCPToolsService();
 
+// Preload MCP tools on startup
+mcpToolsService.initializeTools().catch(error => console.error("Error initializing MCP tools:", error));
 // Preload MCP tools on startup
 mcpToolsService.initializeTools().catch(error => console.error("Error initializing MCP tools:", error));

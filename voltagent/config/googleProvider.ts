@@ -37,14 +37,14 @@ import { GoogleAICacheManager } from '@google/generative-ai/server';
 
 // Simple console-based logger for VoltAgent compatibility
 const logger = {
-  info: (msg: string, data?: Record<string, unknown>) => 
-    console.log(`[INFO] googleProvider: ${msg}`, data ? JSON.stringify(data, null, 2) : ''),
-  debug: (msg: string, data?: Record<string, unknown>) => 
-    console.debug(`[DEBUG] googleProvider: ${msg}`, data ? JSON.stringify(data, null, 2) : ''),
-  error: (msg: string, data?: Record<string, unknown>) => 
-    console.error(`[ERROR] googleProvider: ${msg}`, data ? JSON.stringify(data, null, 2) : ''),
-  warn: (msg: string, data?: Record<string, unknown>) => 
-    console.warn(`[WARN] googleProvider: ${msg}`, data ? JSON.stringify(data, null, 2) : '')
+  info: (msg: string, data?: Record<string, unknown>) =>
+    typeof globalThis.console !== 'undefined' && globalThis.console.log(`[INFO] googleProvider: ${msg}`, data ? JSON.stringify(data, null, 2) : ''),
+  debug: (msg: string, data?: Record<string, unknown>) =>
+    typeof globalThis.console !== 'undefined' && globalThis.console.debug(`[DEBUG] googleProvider: ${msg}`, data ? JSON.stringify(data, null, 2) : ''),
+  error: (msg: string, data?: Record<string, unknown>) =>
+    typeof globalThis.console !== 'undefined' && globalThis.console.error(`[ERROR] googleProvider: ${msg}`, data ? JSON.stringify(data, null, 2) : ''),
+  warn: (msg: string, data?: Record<string, unknown>) =>
+    typeof globalThis.console !== 'undefined' && globalThis.console.warn(`[WARN] googleProvider: ${msg}`, data ? JSON.stringify(data, null, 2) : '')
 };
 
 
@@ -435,9 +435,16 @@ export type { GoogleGenerativeAIProviderOptions, GoogleGenerativeAIProviderSetti
  * [EDIT: 2025-06-22] [BY: GitHub Copilot]
  */
 export function createCacheManager(apiKey?: string): GoogleAICacheManager {
-  const key = apiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  let key = apiKey;
   if (!key) {
-    throw new Error('Google AI API key is required for cache manager');
+    // Check for process.env in Node.js-like environments, using globalThis for universal compatibility
+    const proc = typeof globalThis !== 'undefined' && typeof globalThis.process !== 'undefined' ? globalThis.process : undefined;
+    if (proc && proc.env && proc.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      key = proc.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    }
+  }
+  if (!key) {
+    throw new Error('Google AI API key is required for cache manager. Please provide it as an argument or set GOOGLE_GENERATIVE_AI_API_KEY in your environment.');
   }
   
   logger.info('Creating Google AI cache manager', { hasApiKey: !!key });

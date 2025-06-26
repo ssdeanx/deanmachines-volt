@@ -1,14 +1,15 @@
-import { Agent, createPrompt, createReasoningTools } from "@voltagent/core";
+import { Agent, createReasoningTools } from "@voltagent/core";
 import { VercelAIProvider } from "@voltagent/vercel-ai";
 import { google } from "../config/googleProvider";
 import { mcpToolsService } from "../services/mcp";
 import { createSubAgentHooks } from "../services/hooks";
 import { memoryStorage } from "../services/memory";
-import { MemoryRetriever } from "../services/retriever";
 
-// Create dynamic prompt for file management tasks
-const filePrompt = createPrompt({
-  template: `You are a file management specialist. You can:
+/**
+ * Static system prompt for file agent to avoid runtime modifications.
+ * This prompt is defined statically to ensure system messages are set only at the beginning of the conversation.
+ */
+const filePrompt = `You are a file management specialist. You can:
 - Read, write, create, delete, and move files and directories
 - Search and organize files across local and cloud storage
 - Manage SQLite databases and file-based data
@@ -16,20 +17,7 @@ const filePrompt = createPrompt({
 - Handle document processing and file conversions
 - Maintain file organization and cleanup
 
-Current Task: {{task_type}}
-File Operation: {{operation}}
-Safety Level: {{safety}}
-
-{{file_strategy}}
-
-Always use 'think' to plan file operations before executing them. Use 'analyze' to verify results and ensure file integrity. Always be careful with file operations and confirm destructive actions.`,
-  variables: {
-    task_type: "file management",
-    operation: "general file operations", 
-    safety: "high - confirm destructive actions",
-    file_strategy: "Focus on safe file operations. Always backup important data before modifications."
-  }
-});
+Always use 'think' to plan file operations before executing them. Use 'analyze' to verify results and ensure file integrity. Always be careful with file operations and confirm destructive actions.`;
 
 // Create reasoning tools for file analysis
 const fileReasoningTools = createReasoningTools({
@@ -48,7 +36,7 @@ export const fileAgent = new Agent({
   name: "FileManager",
   purpose: "To manage files and directories, including reading, writing, and organizing data across local and cloud storage.",
   description: "Specialized agent for file operations, cloud storage, and document management with structured reasoning",
-  instructions: filePrompt(),
+  instructions: filePrompt,
   llm: new VercelAIProvider(),
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [
