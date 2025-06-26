@@ -9,6 +9,7 @@ globs: *
 - All agents set `thinkingConfig: { thinkingBudget: 0, includeThoughts: false }` by default.
 - **Ensure all agents have thinkingConfig at 0 & false by default.**
 - **If you continue stopping with errors, then I'm finished working with you.**
+- **If any errors left thats auto ban**
 
 ## CODING STANDARDS
 - **Never stop with errors.**
@@ -93,7 +94,6 @@ When assisting with projects involving Voltagent, prioritize building a professi
 - **Use `upsertFile` to upsert chat logs saved as files.**
 - **You can now upsert any context object—including hook context, tool context, or userContext—into Chroma for semantic search and RAG using `upsertAnyContext`.**
 - **Use `retrieveByType(type, query)` to semantically search only documents with a specific context type (e.g., `"chat-context"`, `"hook-context"`, `"tool-context"`).**
-- **When using transformer models for re-ranking, add `@xenova/transformers` to your dependencies.**
 - If using `chromadb-default-embed` for transformer models, ensure it is correctly implemented.
 - **You can now use transformer-based chunking with the `transformerSemanticChunk` utility.**
 
@@ -103,4 +103,4 @@ When assisting with projects involving Voltagent, prioritize building a professi
 - **Each tool should use the correct schema and be imported from its own file**
 - **Toolkit files should only export the toolkit.**
 - **Each tool should be defined within the main toolkit function.**
-- **When using `createTool` from `@voltagent/core`, the property for the tool's schema should be named `schema`.**
+- **When using `createTool` from `@voltagent/core`, the property for the tool's schema should be named `parameters`.**
