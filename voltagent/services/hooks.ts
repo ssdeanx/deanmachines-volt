@@ -285,7 +285,7 @@ export const createSupervisorHooks = (supervisorName: string, config: HookConfig
       
       // Enhanced supervisor tracking
       const supervisorContext = {
-        supervisorOperationId: `sup-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+        supervisorOperationId: `sup-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         delegationCount: 0,
         subAgentResults: [],
         coordinationStartTime: Date.now()

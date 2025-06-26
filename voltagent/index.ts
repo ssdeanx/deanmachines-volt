@@ -10,6 +10,7 @@ import { dataAgent } from "./agents/dataAgent";
 import { commsAgent } from "./agents/commsAgent";
 import { memoryAgent } from "./agents/memoryAgent";
 import { supervisorAgent } from "./agents/supervisorAgent";
+import { LangfuseExporter } from "@voltagent/langfuse-exporter";
 
 
 const voltagentPublicKey = process.env.PK;
@@ -36,13 +37,23 @@ new VoltAgent({
     supervisor: supervisorAgent,
   },
   server: {
-    enableSwaggerUI: true, // default true in development, false in production
+    autoStart: true,
+    enableSwaggerUI: true,
+    port: 3141,
   },
-  telemetryExporter: new VoltAgentExporter({
-    publicKey: voltagentPublicKey,
-    secretKey: voltagentSecretKey,
-    baseUrl: "https://api.voltagent.dev", // Default URL for the VoltAgent cloud service
-  }),
+  telemetryExporter: [
+    new VoltAgentExporter({
+      publicKey: voltagentPublicKey,
+      secretKey: voltagentSecretKey,
+      baseUrl: "https://api.voltagent.dev", // Default URL for the VoltAgent cloud service
+    }),
+    new LangfuseExporter({
+      publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+      secretKey: process.env.LANGFUSE_SECRET_KEY,
+      baseUrl: process.env.LANGFUSE_BASE_URL,
+      debug: true,
+    })
+  ],
 });
 
 

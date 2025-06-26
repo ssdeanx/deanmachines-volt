@@ -42,7 +42,7 @@ Always use the 'think' tool first to analyze requests and plan delegation. For c
 const reasoningToolkit = createReasoningTools({
   think: true,
   analyze: true,
-  addInstructions: false,
+  addInstructions: true,
   addFewShot: false
 });
 
@@ -68,6 +68,7 @@ export const supervisorAgent = new Agent({
     commsAgent,
     memoryAgent
   ],
+  markdown: true,
   hooks: createSupervisorHooks("Supervisor", {
     verbose: true, // Set to true for debugging delegation
     performance: true,
@@ -83,5 +84,11 @@ export const supervisorAgent = new Agent({
     thinkingBudget: 0,
     includeThoughts: false
   },
-  structuredOutputs: true // Enable structured outputs for better task delegation and coordination
+  structuredOutputs: true, // Enable structured outputs for better task delegation and coordination
+  dynamicRetrieval: {
+    mode: 'MODE_DYNAMIC',
+    dynamicThreshold: 0.8
+  },
+  useSearchGrounding: true,
+  functionCalls: true // Enable function calls for better task delegation and coordination
 });

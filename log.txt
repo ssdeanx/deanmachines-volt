@@ -1,0 +1,5 @@
+{
+  "message": "'system messages are only supported at the beginning of the conversation' functionality not supported.",
+  "stage": "llm_stream",
+  "originalError": "AI_UnsupportedFunctionalityError: 'system messages are only supported at the beginning of the conversation' functionality not supported."
+}

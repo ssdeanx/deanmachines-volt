@@ -56,6 +56,7 @@ export const mathAgent = new Agent({
     analytics: true,
     logPrefix: "[VoltAgent:Math]"
   }),
+  markdown: true,
   // Memory for tracking calculation history and mathematical context
   memory: memoryStorage,
   thinkingConfig: {

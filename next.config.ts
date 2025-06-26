@@ -1,14 +1,29 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@voltagent/*",
+  serverExternalPackages: [
+    "@voltagent/*",
     "npm-check-updates",
     "@ai-sdk/google",
-    "@google/generative-ai",
     "@libsql/client",
     "@opentelemetry/*",
     "@swagger-api/apidom-parser-adapter-openapi-json-2",
-    "ai"],
+    "ai",
+    "@upstash/*",
+    "cheerio",
+    "@google/generative-ai",
+    "crawlee",
+    "wikibase-sdk",
+    "papaparse",
+    "fast-xml-parser",
+    "quick-lru",
+    "yaml",
+    "zod",
+    "js-yaml",
+    "jsonschema",
+    "simple-git",
+    "octokit"
+  ],
 };
 
 export default nextConfig;

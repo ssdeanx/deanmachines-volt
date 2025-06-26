@@ -54,7 +54,7 @@ export const webAgent = new Agent({
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [
     researchReasoningTools, // Add reasoning tools for research analysis
-    ...mcpToolsService.getToolsForAgent('research')
+    ...mcpToolsService.getToolsForAgent(['web_search', 'browser'])
   ],  
   hooks: createSubAgentHooks("WebResearcher", "web research and browsing", {
     verbose: true, // Set to true for debugging web operations
@@ -63,14 +63,15 @@ export const webAgent = new Agent({
     logPrefix: "[VoltAgent:Web]"
   }),  // Memory for maintaining research context and findings
   memory: memoryStorage,
-  // Retriever for accessing memory and conversation history related to web research
-  retriever: new MemoryRetriever(memoryStorage, {
-    toolName: "search_web_history",
-    toolDescription: "Search through memory and conversation history related to web research"
-  }),
+  markdown: true,
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false
   },
-  structuredOutputs: true // Enable structured outputs for better research findings and summaries
+  structuredOutputs: true, // Enable structured outputs for better research findings and summaries
+  dynamicRetrieval: {
+    mode: 'MODE_DYNAMIC',
+    dynamicThreshold: 0.8
+  },
+  useSearchGrounding: true,
 });

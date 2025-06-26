@@ -55,13 +55,8 @@ export const commsAgent = new Agent({
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [
     commsReasoningTools, // Add reasoning tools for communication analysis
-    ...mcpToolsService.getTools().filter(tool => 
-      tool.name?.toLowerCase().includes('slack') ||
-      tool.name?.toLowerCase().includes('message') ||
-      tool.name?.toLowerCase().includes('notification') ||
-      tool.name?.toLowerCase().includes('chat')
-    )
   ],
+  markdown: true,
   hooks: createSubAgentHooks("Communicator", "communication and collaboration", {
     verbose: true, // Set to true for debugging communications
     performance: true,
@@ -70,11 +65,6 @@ export const commsAgent = new Agent({
   }),
   // Memory for tracking communication history and contacts
   memory: memoryStorage,
-  // Retriever for accessing communication history and context
-  retriever: new MemoryRetriever(memoryStorage, {
-    toolName: "search_comms_history",
-    toolDescription: "Search communication history and context"
-  }),
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false

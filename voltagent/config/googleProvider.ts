@@ -103,11 +103,9 @@ export type GoogleModelCacheableId =
   | 'gemini-2.5-pro-preview-05-06'     // Your GEMINI_2_5_PRO
   | 'gemini-2.5-flash-preview-05-20'   // Your GEMINI_2_5_FLASH
   | 'gemini-2.5-flash-lite-preview-06-17' // Your GEMINI_2_5_FLASH_LITE
-  | 'models/gemini-2.5-pro'            // Standard API format
-  | 'models/gemini-2.5-flash'          // Standard API format
-  | 'models/gemini-2.0-flash'
-  | 'models/gemini-1.5-flash-001'
-  | 'models/gemini-1.5-pro-001';
+  | 'models/gemini-2.5-pro'            // Standard API v5 Beta format
+  | 'models/gemini-2.5-flash'          // Standard API v5 Beta format
+  | 'models/gemini-2.5-flash-lite'     // Standard API v5 Beta format
 
 // Log provider initialization
 logger.info('Google provider configuration loaded', {
@@ -266,7 +264,7 @@ export function createGemini25Provider(
     // Search and grounding
     useSearchGrounding?: boolean;
     dynamicRetrieval?: boolean;
-
+    functionCalls?: boolean;
     // Content and caching
     cachedContent?: string;
 
@@ -574,9 +572,7 @@ export function supportsExplicitCaching(modelId: string): modelId is GoogleModel
     // Standard API format models
     'models/gemini-2.5-pro',
     'models/gemini-2.5-flash',
-    'models/gemini-2.0-flash',
-    'models/gemini-1.5-flash-001',
-    'models/gemini-1.5-pro-001'
+    'models/gemini-2.5-flash-lite',
   ];
   
   return cacheableModels.includes(modelId as GoogleModelCacheableId);

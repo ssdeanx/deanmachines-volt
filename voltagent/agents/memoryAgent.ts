@@ -55,9 +55,9 @@ export const memoryAgent = new Agent({
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [
       memoryReasoningTools, // Add reasoning tools for knowledge analysis
-      ...mcpToolsService.getMemoryTools(),
-      ...mcpToolsService.getThinkingTools()
+      ...mcpToolsService.getToolsForAgent(['memory'])
     ],  
+  markdown: true,
   hooks: createSubAgentHooks("KnowledgeKeeper", "memory and knowledge management", {
     verbose: true, // Set to true for debugging memory operations
     performance: true,
@@ -67,10 +67,6 @@ export const memoryAgent = new Agent({
   // Memory for conversation context and knowledge storage
   memory: memoryStorage,
   // Retriever for accessing stored knowledge and conversations
-  retriever: new MemoryRetriever(memoryStorage, {
-    toolName: "search_knowledge_base",
-    toolDescription: "Search the stored knowledge base and conversation history"
-  }),
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false

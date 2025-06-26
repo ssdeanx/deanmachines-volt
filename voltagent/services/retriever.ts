@@ -329,7 +329,7 @@ export class MemoryRetriever extends BaseRetriever {
       const relevantMemories = conversations.filter((conv) => {
         const searchText = `${conv.title || ''} ${conv.metadata?.summary || ''}`.toLowerCase();
         return searchText.includes(queryLower) || 
-               queryLower.split(' ').some(word => searchText.includes(word));
+              queryLower.split(' ').some(word => searchText.includes(word));
       });
 
       if (relevantMemories.length > 0) {

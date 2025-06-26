@@ -16,49 +16,63 @@ function createMCPServers() {
   // ALWAYS AVAILABLE SERVERS (no auth required)
   // ============================
   servers.filesystem = {
+    name: "File_System",
     type: "stdio",
+    timeout: 60000,
     command: "npx",
     args: ["-y", "@modelcontextprotocol/server-filesystem", process.cwd(), "c:/Users/dm/Documents/deanmachines-volt"],
   };
 
   servers.memory = {
+    name: "Memory",
     type: "stdio",
     command: "npx",
     args: ["-y", "@modelcontextprotocol/server-memory"],
   };
 
   servers.browser = {
+    name: "Browser",
     type: "stdio",
+    timeout: 60000,
     command: "npx",
     args: ["-y", "@modelcontextprotocol/server-puppeteer"],
   };
 
   servers.git = {
+    name: "Git",
     type: "stdio",
+    timeout: 60000,
     command: "uvx",
     args: ["mcp-server-git", "--repository", process.cwd(), "c:/Users/dm/Documents/deanmachines-volt"],
   };
 
   servers.docker = {
+    name: "Docker",
     type: "stdio",
+    timeout: 60000,
     command: "npx",
     args: ["-y", "@modelcontextprotocol/server-docker"],
   };
 
   servers.everything = {
+    name: "Everything",
     type: "stdio",
+    timeout: 60000,
     command: "npx",
     args: ["-y", "@modelcontextprotocol/server-everything"],
   };
 
   servers.voltagent = {
+    name: "Voltagent",
     type: "stdio",
     command: "npx",
     args: ["-y", "@voltagent/docs-mcp"],
+    timeout: 60000,
     disabled: false
   };
 
   servers.vibe_check = {
+    name: "Vibe_Check",
     timeout: 60000,
     type: "stdio",
     command: "node",
@@ -71,20 +85,6 @@ function createMCPServers() {
     disabled: false
   };
 
-  servers.markdownify_mcp = {
-    type: "stdio",
-    command: "node",
-    args: [
-      "C:\\Users\\dm\\Documents\\cline\\mcp\\markdownify-mcp\\dist\\index.js"
-    ],
-    disabled: false
-  };
-
-  servers.sequential_thinking = {
-    type: "stdio",
-    command: "npx",
-    args: ["-y", "@modelcontextprotocol/server-sequential-thinking"],
-  };
 
   // ============================
   // CONDITIONAL SERVERS (require credentials)
@@ -93,6 +93,8 @@ function createMCPServers() {
   // GitHub - only if token is available
   if (process.env.GITHUB_TOKEN) {
     servers.github = {
+      name: "GitHub",
+      timeout: 60000,
       type: "stdio",
       command: "npx",
       args: ["-y", "@modelcontextprotocol/server-github"],
@@ -105,24 +107,13 @@ function createMCPServers() {
     console.log("⚠️  GitHub MCP server disabled (GITHUB_TOKEN not found)");
   }
 
-  // GitLab - only if token is available
-  if (process.env.GITLAB_TOKEN) {
-    servers.gitlab = {
-      type: "stdio",
-      command: "npx",
-      args: ["-y", "@modelcontextprotocol/server-gitlab"],
-      env: {
-        GITLAB_PERSONAL_ACCESS_TOKEN: process.env.GITLAB_TOKEN,
-      },
-    };
-    console.log("✅ GitLab MCP server enabled");
-  } else {
-    console.log("⚠️  GitLab MCP server disabled (GITLAB_TOKEN not found)");
-  }
+  
 
   // Brave Search - only if API key is available
   if (process.env.BRAVE_API_KEY) {
     servers.web_search = {
+      name: "Brave_Search",
+      timeout: 60000,
       type: "stdio", 
       command: "npx",
       args: ["-y", "@modelcontextprotocol/server-brave-search"],
@@ -138,6 +129,8 @@ function createMCPServers() {
   // PostgreSQL - only if connection string is available
   if (process.env.SUPABASE_URI) {
     servers.postgres = {
+      name: "Supabase",
+      timeout: 60000,
       type: "stdio",
       command: "npx", 
       args: ["-y", "@modelcontextprotocol/server-postgres"],
@@ -145,39 +138,9 @@ function createMCPServers() {
         POSTGRES_CONNECTION_STRING: process.env.SUPABASE_URI,
       },
     };
-    console.log("✅ PostgreSQL MCP server enabled");
+    console.log("✅ Supabase MCP server enabled");
   } else {
-    console.log("⚠️  PostgreSQL MCP server disabled (SUPABASE_URI not found)");
-  }
-
-  // Google Drive - only if credentials are available
-  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    servers.google_drive = {
-      type: "stdio",
-      command: "npx",
-      args: ["-y", "@modelcontextprotocol/server-gdrive"],
-      env: {
-        GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-      },
-    };
-    console.log("✅ Google Drive MCP server enabled");
-  } else {
-    console.log("⚠️  Google Drive MCP server disabled (GOOGLE_APPLICATION_CREDENTIALS not found)");
-  }
-
-  // Slack - only if bot token is available
-  if (process.env.SLACK_BOT_TOKEN) {
-    servers.slack = {
-      type: "stdio",
-      command: "npx", 
-      args: ["-y", "@modelcontextprotocol/server-slack"],
-      env: {
-        SLACK_BOT_TOKEN: process.env.SLACK_BOT_TOKEN,
-      },
-    };
-    console.log("✅ Slack MCP server enabled");
-  } else {
-    console.log("⚠️  Slack MCP server disabled (SLACK_BOT_TOKEN not found)");
+    console.log("⚠️  Supabase MCP server disabled (SUPABASE_URI not found)");
   }
   console.log(`🔧 MCP Configuration: ${Object.keys(servers).length} servers configured`);
   return servers;
@@ -234,46 +197,22 @@ export class MCPToolsService {
     }
   }
 
+  
+
   /**
-   * Categorize tools by their purpose and server type
+   * Categorize tools by their originating server name.
+   * Assumes tool names are namespaced, e.g., 'filesystem_read_file'.
    */
   private categorizeTools(): void {
     this.toolsByCategory.clear();
-    
-    const categories = {
-      filesystem: ['read_file', 'write_file', 'list_directory', 'create_directory', 'delete_file', 'move_file'],
-      memory: ['store_memory', 'recall_memory', 'search_memory', 'delete_memory'],
-      git: ['git_commit', 'git_push', 'git_pull', 'git_status', 'git_diff', 'git_log'],
-      github: ['create_repository', 'list_repositories', 'get_repository', 'create_issue', 'list_issues'],
-      gitlab: ['gitlab_get_project', 'gitlab_list_projects', 'gitlab_create_issue'],
-      web: ['browse', 'search', 'screenshot', 'fetch_page', 'extract_text'],
-      database: ['query_database', 'execute_sql', 'list_tables', 'describe_table'],
-      cloud: ['upload_file', 'download_file', 'list_files', 'share_file'],
-      development: ['docker_run', 'docker_ps', 'docker_logs', 'compile_code'],
-      thinking: ['sequential_thinking', 'analyze', 'reason', 'plan'],
-      general: [] // fallback category
-    };
-
-    // Group tools by category based on tool names
     for (const tool of this.tools) {
-      let categorized = false;
-      
-      for (const [category, toolNames] of Object.entries(categories)) {
-        if (toolNames.some(name => tool.name?.includes(name) || name.includes(tool.name))) {
-          const existingTools = this.toolsByCategory.get(category) || [];
-          existingTools.push(tool);
-          this.toolsByCategory.set(category, existingTools);
-          categorized = true;
-          break;
-        }
-      }
-      
-      // Add to general category if not categorized
-      if (!categorized) {
-        const generalTools = this.toolsByCategory.get('general') || [];
-        generalTools.push(tool);
-        this.toolsByCategory.set('general', generalTools);
-      }
+      // Assumes tool name is in format 'serverName_toolAction'
+      const parts = tool.name?.split('_');
+      const category = parts && parts.length > 1 ? parts[0] : 'general';
+
+      const existingTools = this.toolsByCategory.get(category) || [];
+      existingTools.push(tool);
+      this.toolsByCategory.set(category, existingTools);
     }
   }
 
@@ -372,25 +311,14 @@ export class MCPToolsService {
   }
 
   /**
-   * Get tools for a specific agent type
+   * Get tools for a specific agent by providing an array of server names
    */
-  getToolsForAgent(agentType: 'file' | 'web' | 'dev' | 'data' | 'research' | 'memory'): any[] {
-    switch (agentType) {
-      case 'file':
-        return [...this.getFilesystemTools(), ...this.getCloudTools()];
-      case 'web':
-        return this.getWebTools();
-      case 'dev':
-        return [...this.getGitTools(), ...this.getDevelopmentTools()];
-      case 'data':
-        return this.getDatabaseTools();
-      case 'research':
-        return [...this.getWebTools(), ...this.getMemoryTools()];
-      case 'memory':
-        return this.getMemoryTools();
-      default:
-        return [];
+  getToolsForAgent(serverNames: string[]): any[] {
+    let agentTools: any[] = [];
+    for (const serverName of serverNames) {
+      agentTools = [...agentTools, ...this.getToolsByCategory(serverName)];
     }
+    return agentTools;
   }
   /**
    * Search tools by name or description (safe - never throws)
@@ -451,6 +379,11 @@ export class MCPToolsService {
     return this.initializeTools();
   }
 }
+
+
+export const toolsets = mcpConfig.getToolsets();
+
+
 
 // Export singleton instance
 export const mcpToolsService = new MCPToolsService();

@@ -54,7 +54,7 @@ export const devAgent = new Agent({
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [
     devReasoningTools, // Add reasoning tools for development analysis
-    ...mcpToolsService.getToolsForAgent('dev')
+    ...mcpToolsService.getToolsForAgent(['git', 'github', 'docker'])
   ],
 
   hooks: createSubAgentHooks("Developer", "development and DevOps", {
@@ -65,14 +65,16 @@ export const devAgent = new Agent({
   }),
   // Memory for tracking development context and project state
   memory: memoryStorage,
-  // Retriever for accessing memory and conversation history related to development tasks
-  retriever: new MemoryRetriever(memoryStorage, {
-    toolName: "search_dev_history",
-    toolDescription: "Search through memory and conversation history related to development tasks"
-  }),
+  markdown: true,
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false
   },
-  structuredOutputs: true // Enable structured outputs for better development planning and execution
+  structuredOutputs: true, // Enable structured outputs for better development planning and execution
+  functionCalls: true, // Enable function calls for better development planning and execution
+  dynamicRetrieval: {
+    mode: 'MODE_DYNAMIC',
+    dynamicThreshold: 0.8
+  },
+  useSearchGrounding: true,
 });

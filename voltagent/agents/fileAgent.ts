@@ -53,7 +53,7 @@ export const fileAgent = new Agent({
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [
       fileReasoningTools, // Add reasoning tools for file analysis
-      ...mcpToolsService.getToolsForAgent('file')
+      ...mcpToolsService.getToolsForAgent(['filesystem', 'cloud'])
     ],  
   hooks: createSubAgentHooks("FileManager", "file operations and storage", {
     verbose: true, // Set to true for debugging file operations
@@ -61,13 +61,9 @@ export const fileAgent = new Agent({
     analytics: true,
     logPrefix: "[VoltAgent:File]"
   }),
+  markdown: true,
   // Memory for tracking file operations and states
   memory: memoryStorage,
-  // Retriever for accessing memory and conversation history
-  retriever: new MemoryRetriever(memoryStorage, {
-    toolName: "search_file_history",
-    toolDescription: "Search through memory and conversation history related to file operations"
-  }),
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false

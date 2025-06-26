@@ -55,7 +55,7 @@ export const dataAgent = new Agent({
   model: google("gemini-2.5-flash-lite-preview-06-17"),
   tools: [
     dataReasoningTools, // Add reasoning tools for data analysis
-    ...mcpToolsService.getToolsForAgent('data')
+    ...mcpToolsService.getToolsForAgent(['postgres', 'cloud'])
 ],  
   hooks: createSubAgentHooks("DataManager", "database and data operations", {
     verbose: true, // Set to true for debugging data operations
@@ -65,11 +65,7 @@ export const dataAgent = new Agent({
   }),
   // Memory for tracking data operations and query history
   memory: memoryStorage,
-  // Retriever for accessing data analysis history and context
-  retriever: new MemoryRetriever(memoryStorage, {
-    toolName: "search_data_context",
-    toolDescription: "Search data analysis history and stored context"
-  }),
+  markdown: true,
   thinkingConfig: {
     thinkingBudget: 0,
     includeThoughts: false
